@@ -1,0 +1,6 @@
+# Request
+GenericMessage header
+string data
+---
+# Response
+string data
