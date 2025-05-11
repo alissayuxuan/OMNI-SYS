@@ -13,9 +13,13 @@ source env/bin/activate
 
 ```bash
 cd backend
-pip install poetry (if not installed yet)
-poetry install
-(later: poetry add <package>)
+pip install poetry #if not installed yet
+poetry install --no-root
+```
+#### To add any new dependencies
+
+```bash
+poetry add <package>
 ```
 
 ### 3. Install Frontend Dependencies
