@@ -1,0 +1,34 @@
+version: 1
+disable_existing_loggers: False
+
+formatters:
+  omni_sys:
+    format: "OMNI-SYS - Backend -- %(levelname)s - %(asctime)s - %(module)s - %(funcName)s() - %(message)s"
+  
+
+filters:
+  below_error:
+    (): logging_filter.BelowErrorFilter
+
+handlers:
+  stdout_handler:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: omni_sys
+    stream: ext://sys.stdout
+    filters: [below_error] # I need to ony log levels between DEBUG and WARNING, but not ERROR or CRITICAL since they are logged to stderr
+  stderr_handler:
+    class: logging.StreamHandler
+    level: ERROR
+    formatter: omni_sys
+    stream: ext://sys.stderr
+
+loggers:
+  omnisyslogger: # specify one logger for all logs we want to log
+    level: DEBUG
+    handlers: [stdout_handler, stderr_handler]
+    propagate: no
+
+root: # all other logs (e.g. from libraries) should be logged with a different handler and therefore different format
+  level: DEBUG
+  handlers: [stderr_handler]
