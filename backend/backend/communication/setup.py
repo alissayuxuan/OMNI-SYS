@@ -27,6 +27,7 @@ setup(
     entry_points={
         'console_scripts': [
             'omni_main = omni_pkg.main:main',
+            'omni_simulator = omni_pkg.system_simulator:main',
             'omni_robot = omni_pkg.robot:main',
             'omni_device = omni_pkg.medical_device:main',
             'omni_human = omni_pkg.human:main',

@@ -14,6 +14,9 @@
   <depend>rosbridge_library</depend>
   <depend>python-socketio</depend>
   <depend>interfaces</depend>
+  
+  <exec_depend>python3-hl7</exec_depend>
+  <exec_depend>python3-pydicom</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
