@@ -1,70 +1,90 @@
-from root_protocol import CommunicationNode
+#!/usr/bin/env python3
+from omni_pkg.root_protocol import CommunicationNode, ObjectType
 from typing import Dict
+import rclpy
 
 class SurgicalRobot(CommunicationNode):
-
-    def __init__(self, robot_id):
-        super().__init__(f'surgical_robot_{robot_id}')
+    def __init__(self, robot_id: str):
+        super().__init__(f'surgical_robot_{robot_id}', ObjectType.ROBOT)
         self.robot_id = robot_id
         self.current_position = [0.0, 0.0, 0.0]
-        self.logger.info(f"Surgical Robot {robot_id} initialized")
+        self.operational_status = "INITIALIZING"
         
-        # Setup periodic status update
-        self.timer = self.create_timer(5.0, self._publish_status)
+        # Status timer (unchanged)
+        self.status_timer = self.create_timer(5.0, self._publish_robot_status)
+        self.logger.info(f"Surgical Robot {robot_id} ready")
 
-    def receive_message(self, source: str, message_data: Dict):
+    def handle_message(self, sender: str, data: Dict):
         """Handle incoming robot commands"""
-        if message_data.get('command') == 'move_to':
-            self._handle_move_command(message_data)
-        elif message_data.get('command') == 'get_status':
-            self._send_status(source)
-        elif message_data.get('command') == 'emergency_stop':
+        if data.get('command') == 'move_to':
+            self._handle_move_command(data)
+        elif data.get('command') == 'get_status':
+            self._send_status_response(sender)
+        elif data.get('command') == 'emergency_stop':
             self._handle_emergency_stop()
         else:
-            self.logger.warning(f"Unhandled command from {source}: {message_data}")
+            self.logger.warning(f"Unhandled command from {sender}: {data}")
 
-    def handle_sync_request(self, source: str, request_data: Dict) -> Dict:
-        """Handle synchronous robot requests"""
-        if request_data.get('request') == 'calibrate':
-            return self._perform_calibration()
-        elif request_data.get('request') == 'precise_position':
-            return {'position': self.current_position}
-        return super().handle_sync_request(source, request_data)
+    def handle_acknowledgment(self, msg_id: str, sender: str):
+        """Handle successful message delivery"""
+        self.logger.info(f"Command {msg_id[:8]} processed by {sender}")
 
     def _handle_move_command(self, data: Dict):
         """Process movement command"""
         if 'position' in data:
+            old_position = self.current_position.copy()
             self.current_position = data['position']
-            self.logger.info(f"Moving to position: {self.current_position}")
-            self.log_event('movement', {
-                'from': self.current_position,
-                'to': data['position']
+            self.operational_status = "MOVING"
+            
+            self.logger.info(
+                f"Moving from {old_position} to {self.current_position}"
+            )
+            
+            self.publish_status({
+                'event': 'movement_started',
+                'from': old_position,
+                'to': self.current_position
             })
 
-    def _send_status(self, target: str):
-        """Send current robot status"""
-        self.send_message(target, {
-            'type': 'robot_status',
-            'robot_id': self.robot_id,
+    def _send_status_response(self, requester: str):
+        """Send detailed status to requester"""
+        self.send_message(requester, {
+            'response': 'status_report',
             'position': self.current_position,
-            'state': 'operational'
+            'status': self.operational_status,
+            'battery': 85,  # Example value
+            'errors': []
         })
 
     def _handle_emergency_stop(self):
         """Execute emergency stop procedure"""
-        self.logger.warning("EMERGENCY STOP ACTIVATED")
-        self.log_event('emergency', {'action': 'full_stop'})
-
-    def _perform_calibration(self) -> Dict:
-        """Execute calibration routine"""
-        self.logger.info("Performing calibration...")
-        self.current_position = [0.0, 0.0, 0.0]
-        return {'status': 'calibrated', 'position': self.current_position}
-
-    def _publish_status(self):
-        """Periodic status update"""
-        self.send_message('status_monitor', {
-            'type': 'periodic_status',
-            'robot_id': self.robot_id,
+        self.operational_status = "EMERGENCY_STOP"
+        self.logger.error("EMERGENCY STOP ACTIVATED")
+        
+        self.publish_status({
+            'event': 'emergency_stop',
             'position': self.current_position
         })
+
+    def _publish_robot_status(self):
+        """Periodic status update"""
+        self.publish_status({
+            'position': self.current_position,
+            'status': self.operational_status,
+            'uptime': self.get_clock().now().seconds_nanoseconds()[0]
+        })
+
+def main(args=None):
+    rclpy.init(args=args)
+    robot = SurgicalRobot("alpha")
+    
+    try:
+        rclpy.spin(robot)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        robot.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
