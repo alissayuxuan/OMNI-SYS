@@ -59,9 +59,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "api",
     "rest_framework",
-    "corsheaders"
+    "corsheaders",
+    "api",
+    "authentification",
+
 ]
 
 MIDDLEWARE = [
@@ -98,8 +100,6 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-print("DB!!!!!!!!!!!!!!!!!!!!!!!!!!", os.getenv("DB_NAME"))
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -132,6 +132,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = "authentification.User" # Alissa: use the custom user model
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
