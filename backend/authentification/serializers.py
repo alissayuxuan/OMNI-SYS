@@ -1,3 +1,4 @@
+"""
 from rest_framework import serializers
 from .models import User  
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -11,6 +12,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         print(validated_data)
+
+        #TODO: create agent object (call create_agent function -> has to be implemented in the other app)
         return User.objects.create_user(**validated_data) # hashes the password and saves user in database
 
 
@@ -25,3 +28,5 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['first_name'] = user.first_name
         token['last_name'] = user.last_name
         return token
+
+"""
