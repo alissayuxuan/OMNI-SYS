@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "api",
     "authentification",
+    "users"
 
 ]
 
@@ -132,7 +133,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = "authentification.User" # Alissa: use the custom user model
+AUTH_USER_MODEL = "users.CustomUser" # Alissa: use the custom user model
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

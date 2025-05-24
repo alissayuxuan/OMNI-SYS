@@ -4,7 +4,7 @@ from django.db import models
 
 
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-
+"""
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
         user = self.model(username=username, **extra_fields)
@@ -33,3 +33,4 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+"""
