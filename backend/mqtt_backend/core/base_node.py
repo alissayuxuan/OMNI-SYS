@@ -12,7 +12,7 @@ class BaseNode:
         self.client = Client(client_id=object_id)
         self.client.user_data_set(self)
         self.client.on_message = self.on_message
-        self.client.connect(BROKER, PORT, 60)
+        self.client.connect(broker, port, 60)
         self.client.subscribe("comm/" + self.object_id)
 
     def start(self):

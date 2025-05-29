@@ -7,11 +7,9 @@ def generate_hl7(msg_type="ADT_A01", msh_kwargs=None, segments=None):
     segments: Dict of segment_name -> {field: value, ...}
     """
     msg = Message(msg_type)
-    # Set MSH fields if any
     if msh_kwargs:
         for k, v in msh_kwargs.items():
             setattr(msg.msh, k, v)
-    # Set other segments
     if segments:
         for seg_name, fields in segments.items():
             seg = getattr(msg, seg_name.lower())

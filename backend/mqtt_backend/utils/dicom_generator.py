@@ -19,7 +19,6 @@ def create_dicom(fields, pixel_array=None, save_to=None):
     file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
     file_meta.ImplementationClassUID = pydicom.uid.generate_uid()
 
-    # Create the FileDataset instance (initially no data elements, but file_meta supplied)
     dt = datetime.datetime.now()
     ds = FileDataset(save_to or tempfile.NamedTemporaryFile(delete=False).name,
                      {}, file_meta=file_meta, preamble=b"\0" * 128)
@@ -33,10 +32,8 @@ def create_dicom(fields, pixel_array=None, save_to=None):
     ds.Modality = fields.get('Modality', 'OT')
     ds.StudyDate = dt.strftime('%Y%m%d')
     ds.StudyTime = dt.strftime('%H%M%S')
-    # You can add more fields as needed:
     for key, value in fields.items():
         setattr(ds, key, value)
-    # Optionally, add pixel data (for image modalities)
     if pixel_array is not None:
         ds.Rows, ds.Columns = pixel_array.shape[:2]
         ds.PhotometricInterpretation = "MONOCHROME2"
@@ -58,10 +55,9 @@ def create_dicom(fields, pixel_array=None, save_to=None):
     ds.save_as(temp_path)
     with open(temp_path, 'rb') as f:
         dicom_bytes = f.read()
-    # Optionally delete temp file if not user-specified
     if save_to is None:
         os.remove(temp_path)
-    return dicom_bytes  # Return binary DICOM
+    return dicom_bytes 
 
 def dicom_bytes_to_base64(dicom_bytes):
     return base64.b64encode(dicom_bytes).decode()
