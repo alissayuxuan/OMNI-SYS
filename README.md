@@ -59,6 +59,20 @@ From the /frontend directory:
 npm run dev
 ```
 
+### Start Database
+```bash
+python manage.py dbshell
+```
+useful psql commands:
+
+```bash
+\l              #list all databases
+\c db_name      #connect to a database
+\dt             #list all tables in current schema
+\d table_name   #show structure of table
+\q              #quit psql terminal
+```
+
 ### Run Communication System
 #### 1. Launch Docker
 ```bash
