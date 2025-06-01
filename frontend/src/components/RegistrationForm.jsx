@@ -2,7 +2,7 @@ import { useState } from "react"
 import api from "../api"
 import { useNavigate } from "react-router-dom"
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants"
-import "../styles/Form.css"
+import "../styles/RegistrationForm.css"
 
 function RegistrationForm({route}) {
 
@@ -15,7 +15,7 @@ function RegistrationForm({route}) {
     const [role, setRole] = useState("admin") // default role
 
     const [loading, setLoading] = useState(false)
-    const navigate = useNavigate()
+    const navigate = useNavigate()  
 
 
     const handleSubmit = async (e) => {
@@ -30,6 +30,10 @@ function RegistrationForm({route}) {
             const res = await api.post(route, payload)
 
             //TODO: what happens after registration?
+            console.log(res.data)
+            alert("User registered successfully!")
+            navigate("/admin-dashboard") // redirect to admin dashboard after registration
+
             
         } catch (error){
             alert(error)
@@ -39,13 +43,15 @@ function RegistrationForm({route}) {
     }
     return <form onSubmit={handleSubmit} className="form-container">
         <h1>Registration</h1>
-        <lable>
-            registration type:
-            <select defaultValue="admin" onChange={(e) => setRole(e.target.value)} className="form-select">
-                <option value="admin">Admin</option>
-                <option value="agent">Agent</option>
-            </select>
-        </lable>
+        
+        <select placeholder="registration type" onChange={(e) => setRole(e.target.value)} className="form-input">
+            <option value="" disabled selected >
+                -- Please select an option --
+            </option>
+            <option value="admin">Admin</option>
+            <option value="agent">Agent</option>
+        </select>
+    
         <input
         className="form-input"
         type="text"

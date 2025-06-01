@@ -1,10 +1,10 @@
 from django.shortcuts import render
 
 # Create your views here.
-from rest_framework import generics, permissions
-from .models import CustomUser, AdminProfile, AgentProfile
+from rest_framework import generics, permissions, status
+#from .models import CustomUser, AdminProfile, AgentProfile
 from .serializers import (
-    RegisterUserSerializer, AdminProfileSerializer, AgentProfileSerializer, CustomTokenRefreshSerializer, CustomTokenObtainPairSerializer
+    RegisterUserSerializer, CustomTokenRefreshSerializer, CustomTokenObtainPairSerializer
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,10 +17,17 @@ class IsAdmin(permissions.BasePermission):
         return request.user.is_authenticated and request.user.role == 'admin'
 
 # register new users
-class RegisterUserView(generics.CreateAPIView):
-    serializer_class = RegisterUserSerializer
-    permission_classes = [IsAdmin]
+class RegisterUserView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
+    def post(self, request):
+        serializer = RegisterUserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'User registered successfully'})
+        return Response(serializer.errors, status=400)
+
+"""
 # admin profile view
 class AdminProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -40,7 +47,7 @@ class AgentDashboardView(APIView):
             return Response({'error': 'Unauthorized'}, status=403)
         profile = AgentProfile.objects.get(user=request.user)
         return Response(AgentProfileSerializer(profile).data)
-
+"""
 
 # Custom Token Refresh View to include user role
 class CustomTokenRefreshView(TokenRefreshView):

@@ -14,7 +14,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['id', 'username', 'role']
 
-
+"""
 class AdminProfileSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer()
 
@@ -29,16 +29,57 @@ class AgentProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentProfile
         fields = ['user', 'agent_type']
+"""
 
+class RegisterUserSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+    role = serializers.ChoiceField(choices=[('admin', 'admin'), ('agent', 'agent')])
 
-class RegisterUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ['username', 'password', 'role']
-        extra_kwargs = {'password': {'write_only': True}}
+    # Admin fields
+    first_name = serializers.CharField(required=False)
+    last_name = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
+    access_level = serializers.IntegerField(required=False)
+
+    # Agent fields
+    agent_type = serializers.CharField(required=False)
+
+    def validate(self, data):
+        role = data.get('role')
+
+        if role == 'admin':
+            required_fields = ['first_name', 'last_name', 'email']
+        elif role == 'agent':
+            required_fields = ['agent_type']
+        else:
+            raise serializers.ValidationError("Invalid role")
+
+        missing = [field for field in required_fields if not data.get(field)]
+        if missing:
+            raise serializers.ValidationError({field: "This field is required for role {}".format(role) for field in missing})
+
+        return data
 
     def create(self, validated_data):
-        user = CustomUser.objects.create_user(**validated_data) #kommen hier admin/agent spezifische daten rein?
+        role = validated_data.pop('role')
+        password = validated_data.pop('password')
+        
+        # Extract profile-specific fields
+        if role == 'admin':
+            admin_fields = {k: validated_data.pop(k) for k in ['first_name', 'last_name', 'email', 'access_level'] if k in validated_data}
+        else:
+            agent_fields = {k: validated_data.pop(k) for k in ['agent_type'] if k in validated_data}
+
+        user = CustomUser.objects.create_user(username=validated_data['username'], role=role)
+        user.set_password(password)
+        user.save()
+
+        if role == 'admin':
+            AdminProfile.objects.create(user=user, **admin_fields)
+        else:
+            AgentProfile.objects.create(user=user, **agent_fields)
+
         return user
     
 

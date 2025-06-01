@@ -6,6 +6,7 @@ import NotFound from "./pages/NotFound"
 import ProtectedRoute from "./components/ProtectedRoute"
 import AgentDashboard from "./pages/AgentDashboard"
 import AdminDashboard from "./pages/AdminDashboard"
+import Home from "./pages/Home"
 
 function Logout() {
   localStorage.clear() //deletes access and refresh token
@@ -22,6 +23,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Home/>} />
         <Route
           path="/agent-dashboard"
           element={
@@ -41,7 +43,16 @@ function App() {
         />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />}/>
-        <Route path="/register" element={<Register />} /> {/* What happens aber a registration? */}
+        
+        <Route 
+          path="/register" 
+          element={
+            <ProtectedRoute role="admin">
+              <Register />
+            </ProtectedRoute>
+          } 
+        /> {/* What happens aber a registration? */}
+
         <Route path="*" element={<NotFound />}/>
         {/*<Route path="/login" element={<Login />}/>
         <Route path="/logout" element={<Logout />}/>
