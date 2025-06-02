@@ -15,6 +15,7 @@ sudo apt update
 sudo apt install docker.io docker-compose -y
 ```
 
+
 ## Setup Instructions
 
 ### 1. Create and Activate a Virtual Environment (Linux)
@@ -42,6 +43,7 @@ poetry add <package>
 cd ../frontend
 npm install
 ```
+
 
 ## Running the Application
 
@@ -96,3 +98,42 @@ poetry run python backend/mqtt_backend/main.py
 ```
 #### 4. Access EMQX Dashboard as Admin
 Go to http://localhost:18083 and login to EMQX Dashboard with designated credentials.
+
+
+## Reinitializing Database and Migrations
+
+Use the following steps to completely reset your PostgreSQL schema and Django migrations.
+
+> ⚠️ **Warning**
+> This will delete all data and migration history. All tables will be deleted.
+
+### 1. Drop and Recreate the Database Schema
+
+```bash
+python manage.py dbshell
+```
+
+Then in the shell:
+
+```sql
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+```
+
+### 2. Delete Existing Migrations
+
+```bash
+find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
+find . -path "*/migrations/*.pyc" -delete
+```
+
+> 💡 **Note:** On Windows, use Git Bash or WSL. PowerShell requires different syntax.
+
+### 3. Recreate and Apply Migrations
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+Your database and migrations are now reset to a clean state.
