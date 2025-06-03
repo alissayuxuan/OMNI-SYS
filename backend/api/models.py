@@ -18,7 +18,7 @@ class Space(OMNISysObject):
 
 class Context(OMNISysObject):
     scheduled = models.DateTimeField()
-    space = models.ForeignKey(Space, on_delete=models.SET_NULL)
+    space = models.ForeignKey(Space, on_delete=models.SET_NULL, null=True)
     agents = models.ManyToManyField(Agent, related_name='contexts')
 
 class Relationship(models.Model):
