@@ -6,7 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Agent, Space, Context, Relationship
 from .serializers import AgentSerializer, SpaceSerializer, ContextSerializer, RelationshipSerializer
 from django_filters.rest_framework import DjangoFilterBackend, OrderingFilter
-from .filters import AgentFilter, SpaceFilter, ContextFilter#
+from .filters import AgentFilter, SpaceFilter, ContextFilter
+from .pagination import StandardResultsSetPagination
 import logging
 logger = logging.getLogger('omnisyslogger')
 
@@ -23,6 +24,7 @@ class AgentViewSet(viewsets.ModelViewSet):
     ordering_fields = ['name', 'access_level', 'created_at']
     ordering = ['-created_at']  # Default ordering
     search_fields = ['name']  # Fields for ?search= parameter
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Optionally filter agents by access_level"""
@@ -72,6 +74,7 @@ class SpaceViewSet(viewsets.ModelViewSet):
     filterset_class = SpaceFilter
     ordering_fields = ['name', 'capacity', 'created_at']
     ordering = ['-created_at']
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Optionally filter spaces by capacity"""
@@ -138,6 +141,7 @@ class ContextViewSet(viewsets.ModelViewSet):
     filterset_class = ContextFilter
     ordering_fields = ['scheduled', 'created_at']
     ordering = ['scheduled']  # Upcoming first
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Filter contexts with various options"""
@@ -271,6 +275,7 @@ class RelationshipViewSet(viewsets.ModelViewSet):
     queryset = Relationship.objects.all()
     serializer_class = RelationshipSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """Filter relationships by doctor or patient"""
