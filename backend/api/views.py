@@ -1,9 +1,12 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import Agent, Space, Context, Relationship
 from .serializers import AgentSerializer, SpaceSerializer, ContextSerializer, RelationshipSerializer
+from django_filters.rest_framework import DjangoFilterBackend, OrderingFilter
+from .filters import AgentFilter, SpaceFilter, ContextFilter
 
 
 class AgentViewSet(viewsets.ModelViewSet):
@@ -13,6 +16,11 @@ class AgentViewSet(viewsets.ModelViewSet):
     queryset = Agent.objects.all()
     serializer_class = AgentSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = AgentFilter
+    ordering_fields = ['name', 'access_level', 'created_at']
+    ordering = ['-created_at']  # Default ordering
+    search_fields = ['name']  # Fields for ?search= parameter
 
     def get_queryset(self):
         """Optionally filter agents by access_level"""
@@ -30,6 +38,10 @@ class SpaceViewSet(viewsets.ModelViewSet):
     queryset = Space.objects.all()
     serializer_class = SpaceSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = SpaceFilter
+    ordering_fields = ['name', 'capacity', 'created_at']
+    ordering = ['-created_at']
 
     def get_queryset(self):
         """Optionally filter spaces by capacity"""
@@ -55,6 +67,10 @@ class ContextViewSet(viewsets.ModelViewSet):
     queryset = Context.objects.all()
     serializer_class = ContextSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ContextFilter
+    ordering_fields = ['scheduled', 'created_at']
+    ordering = ['scheduled']  # Upcoming first
 
     def get_queryset(self):
         """Filter contexts with various options"""
