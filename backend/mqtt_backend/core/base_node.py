@@ -2,6 +2,7 @@ import time
 import json
 from threading import Thread
 from paho.mqtt.client import Client
+from core.protocol_router import ProtocolRouter
 
 BROKER = "localhost" 
 PORT = 1883
@@ -14,9 +15,12 @@ class BaseNode:
         self.client.on_message = self.on_message
         self.client.connect(broker, port, 60)
         self.client.subscribe("comm/" + self.object_id)
+        self._thread = None 
 
     def start(self):
-        Thread(target=self.client.loop_forever, daemon=True).start()
+        if not self._thread:
+            self._thread = Thread(target=self.client.loop_start, daemon=True)
+            self._thread.start()
 
     def send_message(self, destination, protocol, msg_type, payload):
         envelope = {
@@ -35,4 +39,17 @@ class BaseNode:
         self.handle_message(message)
 
     def handle_message(self, message):
-        print(f"[{self.object_id}] Received message: {message}")
+        handler = ProtocolRouter.get_handler(message['protocol'])
+        if handler:
+            decoded = handler.decode(message['payload'])
+            print(f"[Object: {self.object_id}] Got {message['protocol']} message: {decoded}")
+        else:
+            print(f"[Object: {self.object_id}] Received message: {message}")
+
+    def shutdown(self):
+        try:
+            self.client.disconnect()
+            self.client.loop_stop()
+            print(f"[Object: {self.object_id}] MQTT client disconnected and loop stopped.")
+        except Exception as e:
+            print(f"Error shutting down {self.object_id}: {e}")
