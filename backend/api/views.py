@@ -12,8 +12,6 @@ import logging
 from mqtt_backend.comm_node_manager import CommNodeManager
 logger = logging.getLogger('omnisyslogger')
 
-agent_comm_nodes = {}
-
 class AgentViewSet(viewsets.ModelViewSet):
     """
     ViewSet for Agent CRUD operations
@@ -39,7 +37,7 @@ class AgentViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         logger.info(f"Creating new agent with data: {request.data}")
         response = super().create(request, *args, **kwargs)
-        logger.info(f"Successfully created agent with ID: {response.data.get('id')}")
+        logger.info(f"Successfully created agent with ID: {response.data.get('id')}") # TODO: Should first check the response code and log next? 
         agent_id = response.data.get('id')
         if agent_id:
             CommNodeManager.create_node(agent_id)
@@ -50,7 +48,7 @@ class AgentViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         logger.info(f"User {request.user.username} updating agent ID: {instance.id} with data: {request.data} (partial={partial})")
         response = super().update(request, *args, **kwargs)
-        logger.info(f"Successfully updated agent ID: {instance.id}") # TODO: Should first check the response code and log next? 
+        logger.info(f"Successfully updated agent ID: {instance.id}") 
         return response
 
     def list(self, request, *args, **kwargs):
