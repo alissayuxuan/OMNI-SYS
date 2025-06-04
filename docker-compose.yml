@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   emqx:
     image: emqx/emqx:5.5.0
@@ -14,3 +12,32 @@ services:
       - EMQX_NODE__NAME=emqx@emqx
       - EMQX_CLUSTER__DISCOVERY=static
       - EMQX_NODE__COOKIE=emqxsecretcookie
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile.backend
+    container_name: django-backend
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    command: bash -c "poetry install && poetry run python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - emqx
+    env_file:
+      - .env  # <- Put Supabase DB settings here
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: react-frontend
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    command: npm run dev
+    depends_on:
+      - backend
+
