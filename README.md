@@ -3,13 +3,13 @@
 ## Prerequisites
 Before running this project, you must have Docker installed. Choose **one** of these installation methods:
 
-### 🖥️ Option 1: Docker Desktop (Recommended for most users)
+### Option 1: Docker Desktop (Recommended)
 1. Download Docker Desktop:
    - [Windows/Mac](https://www.docker.com/products/docker-desktop)
    - [Linux](https://docs.docker.com/desktop/install/linux-install/)
 2. Install with default settings
 
-### ⌨️ Option 2: Command Line Installation (Linux)
+### Option 2: Command Line Installation (Linux)
 ```bash
 sudo apt update
 sudo apt install docker.io docker-compose -y
