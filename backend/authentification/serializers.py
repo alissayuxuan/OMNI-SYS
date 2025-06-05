@@ -1,4 +1,4 @@
-from rest_framework import serializers
+"""from rest_framework import serializers
 from .models import User  
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -25,3 +25,4 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['first_name'] = user.first_name
         token['last_name'] = user.last_name
         return token
+"""

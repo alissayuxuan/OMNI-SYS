@@ -2,7 +2,9 @@ import time
 import json
 from threading import Thread
 from paho.mqtt.client import Client
-from core.protocol_router import ProtocolRouter
+#from core.protocol_router import ProtocolRouter
+from .protocol_router import ProtocolRouter
+
 
 BROKER = "localhost" 
 PORT = 1883

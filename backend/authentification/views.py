@@ -1,4 +1,4 @@
-from django.shortcuts import render
+"""from django.shortcuts import render
 
 # Create your views here.
 from rest_framework import generics
@@ -21,3 +21,4 @@ class CreateUserView(generics.CreateAPIView): #DRF (Django REST Framework) POST-
 # include JWT for custom user model
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+"""
