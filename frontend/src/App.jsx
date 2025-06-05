@@ -1,12 +1,13 @@
 import React from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import Login from "./pages/Login"
-import Register from "./pages/Register"
-import NotFound from "./pages/NotFound"
-import ProtectedRoute from "./components/ProtectedRoute"
-import AgentDashboard from "./pages/AgentDashboard"
-import AdminDashboard from "./pages/AdminDashboard"
-import Home from "./pages/Home"
+import Login from "@/pages/Login"
+import Register from "@/pages/Register"
+import NotFound from "@/pages/NotFound"
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
+import AgentDashboard from "@/pages/AgentDashboard"
+import { AdminDashboard } from "@/pages/AdminDashboard"
+import Home from "@/pages/Home"
+import '@/index.css';
 
 function Logout() {
   localStorage.clear() //deletes access and refresh token
