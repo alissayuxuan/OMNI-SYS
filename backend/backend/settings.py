@@ -63,7 +63,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "api",
-    "authentification",
     "users",
     "django_filters"
 ]
