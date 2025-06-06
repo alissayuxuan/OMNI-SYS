@@ -2,12 +2,14 @@
 
 from rest_framework import serializers
 from .models import CustomUser, AdminProfile, AgentProfile
+from api.models import Agent
 
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken,AccessToken
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.exceptions import InvalidToken
+from django.db import transaction
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,10 +42,9 @@ class RegisterUserSerializer(serializers.Serializer):
     first_name = serializers.CharField(required=False)
     last_name = serializers.CharField(required=False)
     email = serializers.EmailField(required=False)
-    access_level = serializers.IntegerField(required=False)
 
     # Agent fields
-    agent_type = serializers.CharField(required=False)
+    agent_name = serializers.CharField(required=False)
 
     def validate(self, data):
         role = data.get('role')
@@ -51,7 +52,7 @@ class RegisterUserSerializer(serializers.Serializer):
         if role == 'admin':
             required_fields = ['first_name', 'last_name', 'email']
         elif role == 'agent':
-            required_fields = ['agent_type']
+            required_fields = ['agent_name']
         else:
             raise serializers.ValidationError("Invalid role")
 
@@ -61,26 +62,34 @@ class RegisterUserSerializer(serializers.Serializer):
 
         return data
 
+    @transaction.atomic
     def create(self, validated_data):
         role = validated_data.pop('role')
         password = validated_data.pop('password')
+        username = validated_data.pop('username')
         
         # Extract profile-specific fields
         if role == 'admin':
             admin_fields = {k: validated_data.pop(k) for k in ['first_name', 'last_name', 'email', 'access_level'] if k in validated_data}
         else:
-            agent_fields = {k: validated_data.pop(k) for k in ['agent_type'] if k in validated_data}
+            agent_name = validated_data.pop('agent_name')
 
-        user = CustomUser.objects.create_user(username=validated_data['username'], role=role)
-        user.set_password(password)
-        user.save()
+        try:
+            user = CustomUser.objects.create_user(username=username, role=role)
+            user.set_password(password)
+            user.save()
 
-        if role == 'admin':
-            AdminProfile.objects.create(user=user, **admin_fields)
-        else:
-            AgentProfile.objects.create(user=user, **agent_fields)
+            if role == 'admin':
+                AdminProfile.objects.create(user=user, **admin_fields)
+            else:
+                agent_object = Agent.objects.create(name=agent_name)
+                AgentProfile.objects.create(user=user, agent_object=agent_object)
 
-        return user
+                #AgentProfile.objects.create(user=user, **agent_fields)
+            return user
+        
+        except Exception as e:
+            raise serializers.ValidationError({"detail": f"Registration failed: {str(e)}"})
     
 
 # Custom Token Refresh Serializer to encode user role into token
