@@ -1,9 +1,14 @@
-import { useAuth } from '@/hooks/useAuth';
+//import { useAuth } from '@/hooks/useAuth';
+
+import { useContext } from "react";
+import { UserContext } from "@/components/auth/ProtectedRoute";
+
 import { Button } from '@/components/ui/button';
 import { LogOut, User } from 'lucide-react';
 
 export const Header = () => {
-  const { user, logout } = useAuth();
+  //const { user, logout } = useAuth();
+  const { user, logout } = useContext(UserContext);
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
@@ -11,7 +16,7 @@ export const Header = () => {
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Hospital Digital Twin</h1>
           <p className="text-sm text-gray-600">
-            Welcome back, {user?.name || user?.email}
+            Welcome back, {user?.role}
           </p>
         </div>
         

@@ -35,6 +35,8 @@ function LoginForm({route}) {
             });
             return;
         } else {
+            localStorage.setItem(ACCESS_TOKEN, res.data.access);
+            localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
             if (res.data.role === "admin") {
               console.log("admin login")
               navigate("/admin-dashboard");

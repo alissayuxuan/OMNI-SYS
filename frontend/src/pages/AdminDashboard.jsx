@@ -1,5 +1,5 @@
 import { useHospitalData } from '@/hooks/useHospitalData';
-//import { Header } from '@/components/layout/Header';
+import { Header } from '@/components/layout/Header';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { ObjectManagement } from '@/components/admin/ObjectManagement';
 import { ProfileSettings } from '@/components/settings/ProfileSettings';
@@ -27,8 +27,7 @@ export const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <h1>Welcome, {user?.role}</h1>
-      {/*<Header />*/}
+      <Header />
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Administrator Dashboard</h2>

@@ -1,15 +1,15 @@
 // idea: if we wrap something in protected route then we need to have an authorization token before you can access the route
 import { Navigate } from "react-router-dom"
 import { jwtDecode } from "jwt-decode"
-import React, { createContext } from "react"; // create UserContext to provide user data globally
 import api from "@/api"
 import { REFRESH_TOKEN, ACCESS_TOKEN } from "@/constants"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext, createContext } from "react"
 
 export const UserContext = createContext(null);
 
 export const ProtectedRoute = ({children, role}) => {
-//function ProtectedRoute({children, role}) {
+    console.log("ProtectedRoute!!!!!, role:", role)
+
     const [isAuthorized, setIsAuthorized] = useState(null)
     const [user, setUser] = useState(null);
 
@@ -27,7 +27,9 @@ export const ProtectedRoute = ({children, role}) => {
             console.log("refresh token response", res)
             if (res.status === 200) {
                 localStorage.setItem(ACCESS_TOKEN, res.data.access)
-                setIsAuthorized(checkRole(res.data.access))
+                const checkRoleBool = checkRole(res.data.access)
+                console.log("!!checkRole!! ", checkRoleBool)
+                setIsAuthorized(checkRole)
                 //setIsAuthorized(true)
             } else {
                 setIsAuthorized(false)
@@ -49,6 +51,7 @@ export const ProtectedRoute = ({children, role}) => {
                 role: decoded.role,
                 //created: decoded.created, // falls im Token
               });
+
             return decoded.role === role
         } catch (error) {
             return false
@@ -79,13 +82,21 @@ export const ProtectedRoute = ({children, role}) => {
         return <div>Loading...</div>
     }
 
+    console.log("!!!!!!!!!isAuthorized:", isAuthorized)
     return isAuthorized ? (
         <UserContext.Provider value={user}>
           {children}
         </UserContext.Provider>
       ) : (
-        <Navigate to="/noncs" />
+        <Navigate to="/" />
       );
 };   
 
-//export default ProtectedRoute
+
+/*export const useAuth = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an UserContext.Provider');
+  }
+  return context;
+};  */
