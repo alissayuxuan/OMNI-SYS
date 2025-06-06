@@ -8,7 +8,6 @@ import { useState, useEffect, useContext, createContext } from "react"
 export const UserContext = createContext(null);
 
 export const ProtectedRoute = ({children, role}) => {
-    console.log("ProtectedRoute!!!!!, role:", role)
 
     const [isAuthorized, setIsAuthorized] = useState(null)
     const [user, setUser] = useState(null);
@@ -27,9 +26,7 @@ export const ProtectedRoute = ({children, role}) => {
             console.log("refresh token response", res)
             if (res.status === 200) {
                 localStorage.setItem(ACCESS_TOKEN, res.data.access)
-                const checkRoleBool = checkRole(res.data.access)
-                console.log("!!checkRole!! ", checkRoleBool)
-                setIsAuthorized(checkRole)
+                setIsAuthorized(checkRole(res.data.access))
                 //setIsAuthorized(true)
             } else {
                 setIsAuthorized(false)
@@ -82,7 +79,6 @@ export const ProtectedRoute = ({children, role}) => {
         return <div>Loading...</div>
     }
 
-    console.log("!!!!!!!!!isAuthorized:", isAuthorized)
     return isAuthorized ? (
         <UserContext.Provider value={user}>
           {children}

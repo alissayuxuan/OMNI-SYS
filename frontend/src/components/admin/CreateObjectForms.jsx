@@ -8,43 +8,49 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import api from "@/api"
 
 export const CreateObjectForms = ({ isOpen, onClose }) => {
   const { createObject, objects } = useHospitalData();
   const { toast } = useToast();
 
+  const [loading, setLoading] = useState(false); // TODO
+
   // Form states for different object types
   const [agentForm, setAgentForm] = useState({
-    name: '',
+    agent_name: '',
     username: '',
     password: '',
-    agentRole: '',
-    category: 'doctor'
+    role: 'agent'
   });
 
   const [contextForm, setContextForm] = useState({
     name: '',
-    description: '',
+    //description: '',
     time: '',
     spaceId: 'none',
     participantIds: [],
-    category: 'surgery'
+    //category: 'surgery'
   });
 
   const [spaceForm, setSpaceForm] = useState({
     name: '',
-    extraInfo: '',
-    category: 'surgery-room'
+    //extraInfo: '',
+    //category: 'surgery-room'
+    capacity: 1
   });
 
   const resetForms = () => {
-    setAgentForm({ name: '', username: '', password: '', agentRole: '', category: 'doctor' });
-    setContextForm({ name: '', description: '', time: '', spaceId: 'none', participantIds: [], category: 'surgery' });
-    setSpaceForm({ name: '', extraInfo: '', category: 'surgery-room' });
+    setAgentForm({ agent_name: '', username: '', password: '', role: 'agent'});
+    setContextForm({ name: '', time: '', spaceId: 'none', participantIds: []});
+    setSpaceForm({ name: '', capacity: 1 });
   };
 
-  const handleCreateAgent = () => {
-    if (!agentForm.name || !agentForm.username || !agentForm.password || !agentForm.agentRole) {
+  const handleCreateAgent = async (e) => {
+    setLoading(true);
+    e.preventDefault();
+
+    if (!agentForm.agent_name || !agentForm.username || !agentForm.password) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -53,6 +59,7 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
       return;
     }
 
+    /*
     createObject({
       name: agentForm.name,
       type: 'agent',
@@ -62,15 +69,31 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
         password: agentForm.password,
         agentRole: agentForm.agentRole
       }
-    });
+    });*/
 
-    toast({
-      title: "Success",
-      description: "Agent created successfully"
-    });
+    try {
+      const payload = agentForm;
+      const route = '/api/auth/user/register/'; // Adjust the route as needed
+      console.log("payload: ", payload)
 
-    resetForms();
-    onClose();
+      const res = await api.post(route, payload)
+
+      //TODO: what happens after registration?
+      console.log(res.data)
+      alert("User registered successfully!")
+
+      toast({
+        title: "Success",
+        description: "Agent created successfully"
+      });
+
+    } catch (error){
+      alert(error)
+    } finally {
+      setLoading(false)
+      resetForms();
+      onClose();
+    }
   };
 
   const handleCreateContext = () => {
@@ -152,13 +175,14 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
             <TabsTrigger value="space">Space</TabsTrigger>
           </TabsList>
 
+          {/* Agent Form */}
           <TabsContent value="agent" className="space-y-4">
             <div>
               <Label htmlFor="agent-name">Name *</Label>
               <Input
                 id="agent-name"
-                value={agentForm.name}
-                onChange={(e) => setAgentForm(prev => ({ ...prev, name: e.target.value }))}
+                value={agentForm.agent_name}
+                onChange={(e) => setAgentForm(prev => ({ ...prev, agent_name: e.target.value }))}
                 placeholder="Enter agent name"
               />
             </div>
@@ -172,6 +196,7 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
               />
             </div>
             <div>
+              {/* TODO: generate password function */}
               <Label htmlFor="agent-password">Password *</Label>
               <Input
                 id="agent-password"
@@ -181,7 +206,7 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
                 placeholder="Enter password"
               />
             </div>
-            <div>
+            {/*<div>
               <Label htmlFor="agent-role">Agent Role *</Label>
               <Input
                 id="agent-role"
@@ -204,12 +229,13 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
                   <SelectItem value="staff">Staff</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div>*/}
             <Button onClick={handleCreateAgent} className="w-full">
               Create Agent
             </Button>
           </TabsContent>
 
+          {/* Context Form */}
           <TabsContent value="context" className="space-y-4">
             <div>
               <Label htmlFor="context-name">Name *</Label>
@@ -220,7 +246,7 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
                 placeholder="Enter context name"
               />
             </div>
-            <div>
+            {/*<div>
               <Label htmlFor="context-description">Description *</Label>
               <Textarea
                 id="context-description"
@@ -228,7 +254,7 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
                 onChange={(e) => setContextForm(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Describe the context"
               />
-            </div>
+            </div>*/}
             <div>
               <Label htmlFor="context-time">Time *</Label>
               <Input
@@ -252,7 +278,7 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
                 </SelectContent>
               </Select>
             </div>
-            <div>
+            {/*<div>
               <Label htmlFor="context-category">Category</Label>
               <Select value={contextForm.category} onValueChange={(value) => setContextForm(prev => ({ ...prev, category: value }))}>
                 <SelectTrigger>
@@ -266,12 +292,33 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
                   <SelectItem value="treatment">Treatment</SelectItem>
                 </SelectContent>
               </Select>
+            </div>*/}
+            {/* TODO: add multiple participants!! */}
+            <div>
+              <Label htmlFor="context-participants">Participants</Label>
+              <Select
+                multiple
+                value={contextForm.participantIds}
+                onValueChange={(value) => setContextForm(prev => ({ ...prev, participantIds: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select participants" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agents.map(agent => (
+                    <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
+
             <Button onClick={handleCreateContext} className="w-full">
               Create Context
             </Button>
           </TabsContent>
 
+          {/* Space Form */}
           <TabsContent value="space" className="space-y-4">
             <div>
               <Label htmlFor="space-name">Name *</Label>
@@ -282,7 +329,7 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
                 placeholder="Enter space name"
               />
             </div>
-            <div>
+            {/*<div>
               <Label htmlFor="space-extra-info">Extra Information</Label>
               <Textarea
                 id="space-extra-info"
@@ -306,6 +353,18 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
                   <SelectItem value="laboratory">Laboratory</SelectItem>
                 </SelectContent>
               </Select>
+            </div>*/}
+
+            {/* TODO: name: min 3, unique; capacity: min 1, max 1000 */}
+            <div>
+              <Label htmlFor="space-capacity">Capacity</Label>
+              <Input
+                id="space-capacity"
+                type="number"
+                value={spaceForm.capacity}
+                onChange={(e) => setSpaceForm(prev => ({ ...prev, capacity: e.target.value }))}
+                placeholder="Enter space capacity"
+              />
             </div>
             <Button onClick={handleCreateSpace} className="w-full">
               Create Space

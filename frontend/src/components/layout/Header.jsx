@@ -2,13 +2,22 @@
 
 import { useContext } from "react";
 import { UserContext } from "@/components/auth/ProtectedRoute";
+import { useNavigate } from "react-router-dom"
 
 import { Button } from '@/components/ui/button';
 import { LogOut, User } from 'lucide-react';
 
 export const Header = () => {
   //const { user, logout } = useAuth();
-  const { user, logout } = useContext(UserContext);
+  const navigate = useNavigate()
+
+  const logout = () => {
+    console.log("logout")
+    localStorage.clear() //deletes access and refresh token
+    return navigate("/login")
+  }
+
+  const { user } = useContext(UserContext);
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
