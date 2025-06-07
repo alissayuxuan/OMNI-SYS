@@ -5,9 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import api from "../../api"
+import api from "@/api"
 import { useNavigate } from "react-router-dom"
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../constants"
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants"
 
 function LoginForm({route}) {
   const [username, setUsername] = useState('');
