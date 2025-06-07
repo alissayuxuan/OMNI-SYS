@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useHospitalData } from '@/hooks/useHospitalData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -37,34 +36,39 @@ export const ObjectManagement = () => {
     setLoading(true);
     
     try {
-      /*const [agentsRes, contextsRes, spacesRes] = await Promise.all([
+      const [agentsRes, contextsRes, spacesRes] = await Promise.all([
         getAgents(),
         getContexts(),
         getSpaces()
       ]);
-      setAgents(agentsRes);
-      setContexts(contextsRes);
-      setSpaces(spacesRes);*/
+      //console.log("agentsRes: \n", agentsRes)
+      //console.log("contextsRes: \n", contextsRes)
+      //console.log("spacesRes: \n", spacesRes)
 
-      // TODO: namen und id, richtig so???
-      const normalizedAgents = agents.map(agent => ({
+      setAgents(agentsRes.results);
+      setContexts(contextsRes.results);
+      setSpaces(spacesRes.results);
+
+      
+
+      const normalizedAgents = agentsRes.results.map(agent => ({
         id: agent.id,
-        name: agent.agent_name,
-        type: "Agent",
+        name: agent.name,
+        type: "agent",
         createdAt: agent.created_at,
       }));
 
-      const normalizedContexts = contexts.map(context => ({
+      const normalizedContexts = contextsRes.results.map(context => ({
         id: context.id,
-        name: context.context_name,
-        type: "Context",
+        name: context.name,
+        type: "context",
         createdAt: context.created_at,
       }));
   
-      const normalizedSpaces = spaces.map(space => ({
+      const normalizedSpaces = spacesRes.results.map(space => ({
         id: space.id,
-        name: space.space_name,
-        type: "Space",
+        name: space.name,
+        type: "space",
         createdAt: space.created_at,
       }));
 
@@ -83,17 +87,19 @@ export const ObjectManagement = () => {
   
 
   const handleDeleteObject = async(object) => {
+    console.log("delete - object: ", object)
 
     try {
       let deletedObj = null;
 
-      if (object.type === "Agent") {
+      if (object.type === "agent") {
+        console.log("delete agent")
         deletedObj = await deleteAgent(object.id);
       } 
-      else if (object.type === "Context") {
+      else if (object.type === "context") {
         deletedObj = await deleteContext(object.id);
       }
-      else if (object.type === "Space") {
+      else if (object.type === "space") {
         deletedObj = await deleteSpace(object.id);
       }
 
@@ -123,8 +129,7 @@ export const ObjectManagement = () => {
 
   const filteredObjects = allObjects.filter(obj => {
     const matchesType = filterType === 'all' || obj.type === filterType;
-    const matchesSearch = obj.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         obj.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = obj.name.toLowerCase().includes(searchTerm.toLowerCase())
     return matchesType && matchesSearch;
   });
 
@@ -181,13 +186,13 @@ export const ObjectManagement = () => {
               <TableHead>Name</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Category</TableHead>
-              {/*<TableHead>Created</TableHead>
-              <TableHead>Actions</TableHead>*/}
+              <TableHead>Created</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredObjects.map((object) => (
-              <TableRow key={object.id}>
+              <TableRow key={`${object.type}-${object.id}`}>
                 <TableCell className="font-medium">{object.name}</TableCell>
                 <TableCell>
                   <Badge className={getObjectTypeColor(object.type)}>
@@ -208,7 +213,7 @@ export const ObjectManagement = () => {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => handleDeleteObject(object.id)}
+                      onClick={() => handleDeleteObject(object)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

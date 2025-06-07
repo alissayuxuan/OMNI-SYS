@@ -72,15 +72,92 @@ export const manageHospitalData = () => {
     }
   };
 
+  // Get all users (optional: filter by role)
+  const getUsers = async (role = null) => {
+    try {
+      const response = await api.get(`api/auth/users/${role ? `?role=${role}` : ''}`);
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.detail || "Failed to fetch users.";
+      throw new Error(message);
+    }
+  };
+  
+  // Get a specific user by ID
+  const getUser = async (userId) => {
+    try {
+      const response = await api.get(`api/auth/users/${userId}/`);
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.detail || "Failed to fetch user.";
+      throw new Error(message);
+    }
+  };
+
+  // Get AgentProfiles (agent from authentification table)
+  const getAgentProfiles = async () => {
+    try {
+      const res = await api.get("api/auth/agent-profiles/");
+      return res.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || "Failed to fetch agent profiles");
+    }
+  };
+  
+  // Get specific AgentProfiles (agent from authentification table)
+  const getAgentProfile = async (id) => {
+    try {
+      const res = await api.get(`api/auth/agent-profiles/${id}/`);
+      return res.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || "Failed to fetch agent profile");
+    }
+  };
+
+  // Get AdminProfiles
+  const getAdminProfiles = async () => {
+    try {
+      const res = await api.get("api/auth/admin-profiles/");
+      return res.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || "Failed to fetch admin profiles");
+    }
+  };
+  
+  // Get specific AdminProfile
+  const getAdminProfile = async (id) => {
+    try {
+      const res = await api.get(`api/auth/admin-profiles/${id}/`);
+      return res.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || "Failed to fetch admin profile");
+    }
+  };
+
+
+
     /* Create Objects */
 
   // Create User & Agent
   const createAgent = async (payload) => {
+    console.log("create agent: ", payload)
     try {
         const response = await api.post("/api/auth/user/register/", payload);
         return response.data; 
       } catch (error) {
         const message = error.response?.data?.message || "Error occured when creating the Agent.";
+        throw new Error(message); 
+      }
+  };
+
+  // Create Admin
+  const createAdmin = async (payload) => {
+    console.log("create admin: ", payload)
+    try {
+        const response = await api.post("/api/auth/user/register/", payload);
+        return response.data; 
+      } catch (error) {
+        const message = error.response?.data?.message || "Error occured when creating the Admin.";
         throw new Error(message); 
       }
   };
@@ -98,6 +175,7 @@ export const manageHospitalData = () => {
 
   // Create Space
   const createSpace = async (payload) => {
+    console.log("createSpace - ", payload)
     try {
       const response = await api.post("api/spaces/", payload);
       return response.data; 
@@ -111,6 +189,7 @@ export const manageHospitalData = () => {
   {/* Delete Objects*/}
   // TODO: delete AgentUser as well!!
   const deleteAgent = async (agentId) => {
+    console.log("DELETE AGENT: ", agentId)
     try {
       const response = await api.delete(`/api/agents/${agentId}/`);
       console.log("Agent deleted successfully:", response.data);
@@ -145,6 +224,35 @@ export const manageHospitalData = () => {
       console.error("Error deleting space:", error);
       const message = error.response?.data?.message || "Error occured when deleting the space.";
       throw new Error(message)
+    }
+  };
+  
+  // Delete a user by ID
+  const deleteUser = async (userId) => {
+    try {
+      await api.delete(`api/auth/users/${userId}/`);
+      return true;
+    } catch (error) {
+      const message = error.response?.data?.detail || "Failed to delete user.";
+      throw new Error(message);
+    }
+  };
+
+  // Delete AgentProfile
+  const deleteAgentProfile = async (id) => {
+    try {
+      await api.delete(`api/auth/agent-profiles/${id}/`);
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || "Failed to delete agent profile");
+    }
+  };
+
+  // Delete AdminProfile
+  const deleteAdminProfile = async (id) => {
+    try {
+      await api.delete(`api/auth/admin-profiles/${id}/`);
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || "Failed to delete admin profile");
     }
   };
 
@@ -182,6 +290,38 @@ export const manageHospitalData = () => {
   // TODO: Update Context -> only add/ remove Agent from Context
   // TODO: Update Space ??
 
+  // Update a user by ID
+ const updateUser = async (userId, payload) => {
+    try {
+      const response = await api.put(`api/auth/users/${userId}/`, payload);
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.detail || "Failed to update user.";
+      throw new Error(message);
+    }
+  };
+
+  // Update AgentProfile by ID
+  const updateAgentProfile = async (id, data) => {
+    try {
+      const res = await api.put(`api/auth/agent-profiles/${id}/`, data);
+      return res.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || "Failed to update agent profile");
+    }
+  };
+
+  // Update AdminProfile by ID
+  const updateAdminProfile = async (id, data) => {
+    try {
+      const res = await api.put(`api/auth/admin-profiles/${id}/`, data);
+      return res.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || "Failed to update admin profile");
+    }
+  };
+
+
 
 
 
@@ -190,7 +330,14 @@ export const manageHospitalData = () => {
     getAgents,
     getContexts,
     getSpaces,
+    getUsers,
+    getUser,
+    getAgentProfiles,
+    getAgentProfile,
+    getAdminProfiles,
+    getAdminProfile,
     createAgent,
+    createAdmin,
     createContext,
     createSpace,
     deleteAgent,

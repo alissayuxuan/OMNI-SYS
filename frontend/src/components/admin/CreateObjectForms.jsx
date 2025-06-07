@@ -55,7 +55,9 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData }) => {
     setLoading(true);
     e.preventDefault();
     // TODO: name requirements check
+    console.log("handleCreateAgent")
     if (!agentForm.agent_name || !agentForm.username || !agentForm.password) {
+      console.log("agent_name: ", !agentForm.agent_name, "username: ", !agentForm.username, "password: ", !agentForm.password)
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -65,6 +67,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData }) => {
     }
 
     try {
+      console.log("creating agent")
       const createdAgent = await createAgent(agentForm);
 
       alert(`agent '${createdAgent.name}' created!`)
@@ -132,6 +135,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData }) => {
   };
 
   const handleCreateSpace = async(e) => {
+    console.log("handleCreateSpace")
     setLoading(true);
     e.preventDefault();
 
@@ -219,8 +223,8 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData }) => {
                 placeholder="Enter agent name"
               />*/}
               <Input
-                id="space-name"
-                value={spaceForm.name}
+                id="agent-name"
+                value={agentForm.agent_name}
                 onChange={(e) => {
                   const value = e.target.value;
                   const isValid = /^[a-zA-Z0-9 .'-]{2,100}$/.test(value);
@@ -232,9 +236,9 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData }) => {
                   } else {
                     setNameError("");
                   }
-                  setSpaceForm((prev) => ({ ...prev, name: value }));
+                  setAgentForm(prev => ({ ...prev, agent_name: e.target.value }))
                 }}
-                placeholder="Enter space name"
+                placeholder="Enter agent name"
               />
               {nameError && <p className="text-red-500 text-sm">{nameError}</p>}
             </div>

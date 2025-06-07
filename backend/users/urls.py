@@ -1,10 +1,15 @@
 from django.urls import path
-from .views import RegisterUserView, CustomTokenRefreshView, CustomTokenObtainPairView
+from .views import  ( RegisterUserView, CustomTokenRefreshView, CustomTokenObtainPairView, 
+UserList, UserDetail, AgentProfileList, AgentProfileDetail, AdminProfileList, AdminProfileDetail )
 
 urlpatterns = [
     path('user/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('user/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('user/register/', RegisterUserView.as_view(), name='register_user'),
-    #path('user/admin-profile/', AdminProfileView.as_view(), name='admin_profile'),
-    #path('user/agent-dashboard/', AgentDashboardView.as_view(), name='agent_dashboard'),
+    path('users/', UserList.as_view(), name='user-list'),
+    path('users/<int:user_id>/', UserDetail.as_view(), name='user-detail'),
+    path('agent-profiles/', AgentProfileList.as_view(), name='agent-profile-list'),
+    path('agent-profiles/<int:pk>/', AgentProfileDetail.as_view(), name='agent-profile-detail'),
+    path('admin-profiles/', AdminProfileList.as_view(), name='admin-profile-list'),
+    path('admin-profiles/<int:pk>/', AdminProfileDetail.as_view(), name='admin-profile-detail'),
 ]

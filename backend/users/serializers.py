@@ -14,15 +14,16 @@ from django.db import transaction
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'role']
+        fields = ['id', 'username', 'role', 'date_joined']
+        read_only_fields = ['date_joined']
 
-"""
+
 class AdminProfileSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer()
 
     class Meta:
         model = AdminProfile
-        fields = ['user', 'first_name', 'last_name', 'email', 'access_level']
+        fields = '__all__'
 
 
 class AgentProfileSerializer(serializers.ModelSerializer):
@@ -30,8 +31,8 @@ class AgentProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AgentProfile
-        fields = ['user', 'agent_type']
-"""
+        fields = '__all__'
+
 
 class RegisterUserSerializer(serializers.Serializer):
     username = serializers.CharField()

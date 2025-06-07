@@ -4,7 +4,7 @@ import { GraphVisualization } from '@/components/graph/GraphVisualization';
 import { useHospitalData } from '@/hooks/useHospitalData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Database, Network, BarChart3 } from 'lucide-react';
+import { Users, Database, Network, CalendarDays, Building } from 'lucide-react';
 
 export const AgentDashboard = () => {
   const { objects, relationships } = useHospitalData();
@@ -27,7 +27,7 @@ export const AgentDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
@@ -53,10 +53,21 @@ export const AgentDashboard = () => {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <BarChart3 className="h-8 w-8 text-yellow-600" />
+                <CalendarDays className="h-8 w-8 text-yellow-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Contexts</p>
                   <p className="text-2xl font-bold text-gray-900">{stats.contexts}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Building className="h-8 w-8 text-orange-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Spaces</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.spaces}</p>
                 </div>
               </div>
             </CardContent>
