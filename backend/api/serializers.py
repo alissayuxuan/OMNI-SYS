@@ -1,3 +1,4 @@
+from django.db import models
 from rest_framework import serializers
 from .models import Agent, Space, Context, Relationship
 from django.utils import timezone

@@ -22,7 +22,7 @@ services:
       - .:/app
     ports:
       - "8000:8000"
-    command: bash -c "poetry install && poetry run python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "poetry install --no-root && poetry run python ./backend/manage.py runserver 0.0.0.0:8000"
     depends_on:
       - emqx
     env_file:
