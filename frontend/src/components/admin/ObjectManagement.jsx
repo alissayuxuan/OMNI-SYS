@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useHospitalData } from '@/hooks/useHospitalData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +11,11 @@ import { useToast } from '@/hooks/use-toast';
 import { CreateObjectForms } from './CreateObjectForms';
 import { EditObjectForm } from './EditObjectForm';
 
+import { manageHospitalData } from "@/hooks/manageHospitalData";
+
+
 export const ObjectManagement = () => {
-  const { objects, deleteObject } = useHospitalData();
+  //const { objects, deleteObject } = useHospitalData();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -20,12 +23,97 @@ export const ObjectManagement = () => {
   const [filterType, setFilterType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleDeleteObject = (objectId) => {
-    deleteObject(objectId);
-    toast({
-      title: "Success",
-      description: "Object deleted successfully"
-    });
+  //alissa
+  const [loading, setLoading] = useState(false)
+  const {getAgents, getContexts, getSpaces, deleteAgent, deleteContext, deleteSpace} = manageHospitalData();
+  const [agents, setAgents] = useState([]);
+  const [contexts, setContexts] = useState([]);
+  const [spaces, setSpaces] = useState([]);
+
+  const [allObjects, setAllObjects] = useState([]);
+
+  
+  const fetchHospitalData = useCallback(async () => {
+    setLoading(true);
+    
+    try {
+      /*const [agentsRes, contextsRes, spacesRes] = await Promise.all([
+        getAgents(),
+        getContexts(),
+        getSpaces()
+      ]);
+      setAgents(agentsRes);
+      setContexts(contextsRes);
+      setSpaces(spacesRes);*/
+
+      // TODO: namen und id, richtig so???
+      const normalizedAgents = agents.map(agent => ({
+        id: agent.id,
+        name: agent.agent_name,
+        type: "Agent",
+        createdAt: agent.created_at,
+      }));
+
+      const normalizedContexts = contexts.map(context => ({
+        id: context.id,
+        name: context.context_name,
+        type: "Context",
+        createdAt: context.created_at,
+      }));
+  
+      const normalizedSpaces = spaces.map(space => ({
+        id: space.id,
+        name: space.space_name,
+        type: "Space",
+        createdAt: space.created_at,
+      }));
+
+      setAllObjects([...normalizedAgents, ...normalizedContexts, ...normalizedSpaces]);
+
+    } catch (err) {
+      console.error("Failed to load hospital data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchHospitalData(); // fetch on mount
+  }, [fetchHospitalData]);
+  
+
+  const handleDeleteObject = async(object) => {
+
+    try {
+      let deletedObj = null;
+
+      if (object.type === "Agent") {
+        deletedObj = await deleteAgent(object.id);
+      } 
+      else if (object.type === "Context") {
+        deletedObj = await deleteContext(object.id);
+      }
+      else if (object.type === "Space") {
+        deletedObj = await deleteSpace(object.id);
+      }
+
+      toast({
+        title: "Success",
+        description: "Object deleted successfully"
+      });
+      
+      console.log("Object deleted:", deletedObj);
+      fetchHospitalData();
+
+    } catch(err) {
+      console.error("Error:", err);
+      alert("An error occured");
+      toast({
+        title: "Error",
+        description: "An error occured"
+      });
+    } 
+    
   };
 
   const handleEditObject = (object) => {
@@ -33,7 +121,7 @@ export const ObjectManagement = () => {
     setIsEditDialogOpen(true);
   };
 
-  const filteredObjects = objects.filter(obj => {
+  const filteredObjects = allObjects.filter(obj => {
     const matchesType = filterType === 'all' || obj.type === filterType;
     const matchesSearch = obj.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          obj.category.toLowerCase().includes(searchTerm.toLowerCase());
@@ -93,8 +181,8 @@ export const ObjectManagement = () => {
               <TableHead>Name</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead>Actions</TableHead>
+              {/*<TableHead>Created</TableHead>
+              <TableHead>Actions</TableHead>*/}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -106,7 +194,7 @@ export const ObjectManagement = () => {
                     {object.type}
                   </Badge>
                 </TableCell>
-                <TableCell>{object.category}</TableCell>
+                <TableCell>{object.id}</TableCell>
                 <TableCell>{new Date(object.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
@@ -134,12 +222,14 @@ export const ObjectManagement = () => {
         <CreateObjectForms 
           isOpen={isCreateDialogOpen}
           onClose={() => setIsCreateDialogOpen(false)}
+          refreshData={fetchHospitalData} //alissa
         />
 
         <EditObjectForm
           isOpen={isEditDialogOpen}
           onClose={() => setIsEditDialogOpen(false)}
           object={editingObject}
+          refreshData={fetchHospitalData} //alissa
         />
       </CardContent>
     </Card>

@@ -9,10 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { X } from 'lucide-react';
-import api from "@/api"
 import { manageHospitalData } from '@/hooks/manageHospitalData'
 
-export const CreateObjectForms = ({ isOpen, onClose }) => {
+export const CreateObjectForms = ({ isOpen, onClose, refreshData }) => {
   const {createAgent, createContext, createSpace } = manageHospitalData();
   const { createObject, objects } = useHospitalData();
   const { toast } = useToast();
@@ -47,22 +46,7 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
     setSpaceForm({ name: '', capacity: 1 });
   };
 
-  /* Get Objects */
-  /*const getAgents = async (e) => {
-    e.preventDefault(); // verhindert Seiten-Reload bei Formularen
-    setLoading(true);
-
-    try {
-
-      const data = await getAgents();
-      setAgents(data.results); // falls API paginiert ist
-    } catch (error) {
-      console.error("Fehler beim Laden der Agents:", error.message);
-      // evtl. toast oder error UI
-    } finally {
-      setLoading(false);
-    }
-  };*/
+  const [nameError, setNameError] = useState("")
 
 
   /* Create Objects */
@@ -89,6 +73,7 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
         description: `Context '${createdAgent.name}' created.`,
       });
       console.log("Context created:", createdAgent)
+      refreshData(); //refresh Hospital Page
 
     } catch (error){
       alert(error)
@@ -131,6 +116,7 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
         description: `Context '${createdContext.name}' created.`,
       });
       console.log("Context created:", createdContext);
+      refreshData();
     } catch (err) {
       console.error("Error:", err);
       alert("An error occured");
@@ -144,7 +130,6 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
       setLoading(false);
     }
   };
-
 
   const handleCreateSpace = async(e) => {
     setLoading(true);
@@ -168,6 +153,7 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
         description: `Space '${createdSpace.name}' created.`,
       });
       console.log("space created: ", createdSpace)
+      refreshData();
   
     } catch (err) {
       console.error("Error:", err);
@@ -203,6 +189,8 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
     }));
   };
 
+
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -224,12 +212,31 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
           <TabsContent value="agent" className="space-y-4">
             <div>
               <Label htmlFor="agent-name">Name *</Label>
-              <Input
+              {/*<Input
                 id="agent-name"
                 value={agentForm.agent_name}
                 onChange={(e) => setAgentForm(prev => ({ ...prev, agent_name: e.target.value }))}
                 placeholder="Enter agent name"
+              />*/}
+              <Input
+                id="space-name"
+                value={spaceForm.name}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const isValid = /^[a-zA-Z0-9 .'-]{2,100}$/.test(value);
+                  
+                  if (value !== "" && !isValid) {
+                    setNameError(
+                      "Name must be 2–100 characters and contain only letters, numbers, spaces, hyphens, periods, or apostrophes."
+                    );
+                  } else {
+                    setNameError("");
+                  }
+                  setSpaceForm((prev) => ({ ...prev, name: value }));
+                }}
+                placeholder="Enter space name"
               />
+              {nameError && <p className="text-red-500 text-sm">{nameError}</p>}
             </div>
             <div>
               <Label htmlFor="agent-username">Username *</Label>
@@ -291,24 +298,7 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
                 </SelectContent>
               </Select>
             </div>
-            {/* TODO: add multiple participants!! */}
-            {/*<div>
-              <Label htmlFor="context-participants">Participants</Label>
-              <Select
-                multiple
-                value={contextForm.participantIds}
-                onValueChange={(value) => setContextForm(prev => ({ ...prev, participantIds: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select participants" />
-                </SelectTrigger>
-                <SelectContent>
-                  {agents.map(agent => (
-                    <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>*/}
+            
             <div>
               <Label htmlFor="context-participants">Participants *</Label>
               <div className="space-y-2">
@@ -360,31 +350,6 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
                 placeholder="Enter space name"
               />
             </div>
-            {/*<div>
-              <Label htmlFor="space-extra-info">Extra Information</Label>
-              <Textarea
-                id="space-extra-info"
-                value={spaceForm.extraInfo}
-                onChange={(e) => setSpaceForm(prev => ({ ...prev, extraInfo: e.target.value }))}
-                placeholder="Additional information about the space"
-              />
-            </div>
-            <div>
-              <Label htmlFor="space-category">Category</Label>
-              <Select value={spaceForm.category} onValueChange={(value) => setSpaceForm(prev => ({ ...prev, category: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="surgery-room">Surgery Room</SelectItem>
-                  <SelectItem value="patient-room">Patient Room</SelectItem>
-                  <SelectItem value="emergency">Emergency</SelectItem>
-                  <SelectItem value="diagnostic">Diagnostic</SelectItem>
-                  <SelectItem value="office">Office</SelectItem>
-                  <SelectItem value="laboratory">Laboratory</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>*/}
 
             {/* TODO: name: min 3, unique; capacity: min 1, max 1000 */}
             <div>
@@ -392,6 +357,8 @@ export const CreateObjectForms = ({ isOpen, onClose }) => {
               <Input
                 id="space-capacity"
                 type="number"
+                min="1"
+                max="1000"
                 value={spaceForm.capacity}
                 onChange={(e) => setSpaceForm(prev => ({ ...prev, capacity: e.target.value }))}
                 placeholder="Enter space capacity"

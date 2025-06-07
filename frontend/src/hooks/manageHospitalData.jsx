@@ -3,7 +3,7 @@ import api from "@/api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants"
 
 
-export const useHospitalData = () => {
+export const manageHospitalData = () => {
   const [users, setUsers] = useState([]); //Admin and Agent
   const [agents, setAgents] = useState([]);
   const [context, setContext] = useState([]);
