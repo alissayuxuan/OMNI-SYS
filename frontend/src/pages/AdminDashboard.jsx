@@ -12,7 +12,7 @@ import { useContext } from "react";
 import { UserContext } from "@/components/auth/ProtectedRoute";
 
 export const AdminDashboard = () => {
-  const { objects, relationships } = useHospitalData();
+  const { objects, relationships } = useHospitalData(false);
 
   const user = useContext(UserContext);
 

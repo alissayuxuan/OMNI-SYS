@@ -1,17 +1,39 @@
 import { useState, useEffect } from 'react';
-import api from '../api'; // Your existing API instance
+import api from '../api';
+import { jwtDecode } from "jwt-decode";
+import { ACCESS_TOKEN } from "../constants";
 
-export const useHospitalData = () => {
+export const useHospitalData = (filterByCurrentUser = false) => {
   const [users, setUsers] = useState([]);
   const [objects, setObjects] = useState([]);
   const [relationships, setRelationships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Get current user info from JWT token
+  useEffect(() => {
+    if (filterByCurrentUser) {
+      const token = localStorage.getItem(ACCESS_TOKEN);
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+          setCurrentUser({
+            id: decoded.user_id,
+            username: decoded.username || decoded.sub,
+            role: decoded.role
+          });
+        } catch (error) {
+          console.error('Error decoding token:', error);
+        }
+      }
+    }
+  }, [filterByCurrentUser]);
 
   // Fetch all data on component mount
   useEffect(() => {
     fetchAllData();
-  }, []);
+  }, [currentUser]);
 
   const fetchAllData = async () => {
     try {
@@ -26,7 +48,7 @@ export const useHospitalData = () => {
       ]);
 
       // Transform Django API data to GraphVisualization format
-      const transformedObjects = [
+      const allObjects = [
         // Transform Agents to objects
         ...agentsResponse.data.results.map(agent => ({
           id: `agent-${agent.id}`,
@@ -58,20 +80,21 @@ export const useHospitalData = () => {
           properties: {
             time: context.scheduled,
             spaceId: context.space ? `space-${context.space}` : undefined,
-            participantIds: context.agents.map(agentId => `agent-${agentId}`)
+            participantIds: context.agents.map(agentId => `agent-${agentId}`),
+            django_id: context.id
           },
           createdAt: context.created_at,
         }))
       ];
 
       // Create relationships based on Context participants and Space associations
-      const transformedRelationships = [];
+      const allRelationships = [];
       let relationshipId = 1;
 
       contextsResponse.data.results.forEach(context => {
         // Create relationships between agents and contexts
         context.agents.forEach(agentId => {
-          transformedRelationships.push({
+          allRelationships.push({
             id: `rel-${relationshipId++}`,
             fromObjectId: `agent-${agentId}`,
             toObjectId: `context-${context.id}`,
@@ -83,7 +106,7 @@ export const useHospitalData = () => {
 
         // Create relationship between space and context
         if (context.space) {
-          transformedRelationships.push({
+          allRelationships.push({
             id: `rel-${relationshipId++}`,
             fromObjectId: `space-${context.space}`,
             toObjectId: `context-${context.id}`,
@@ -94,12 +117,19 @@ export const useHospitalData = () => {
         }
       });
 
-      setObjects(transformedObjects);
-      setRelationships(transformedRelationships);
+      // Filter data if requested and user is an agent
+      let filteredObjects = allObjects;
+      let filteredRelationships = allRelationships;
 
-      // Note: Your current backend doesn't have a users endpoint that matches
-      // the hospital data pattern, so we'll leave users empty for now
-      setUsers([]);
+      if (filterByCurrentUser && currentUser && currentUser.role === 'agent') {
+        const userRelatedData = filterDataForUser(allObjects, allRelationships, currentUser);
+        filteredObjects = userRelatedData.objects;
+        filteredRelationships = userRelatedData.relationships;
+      }
+
+      setObjects(filteredObjects);
+      setRelationships(filteredRelationships);
+      setUsers([]); // Keep empty for now
 
     } catch (err) {
       console.error('Error fetching hospital data:', err);
@@ -109,13 +139,85 @@ export const useHospitalData = () => {
     }
   };
 
+  // Filter data to show only objects related to the current user
+  const filterDataForUser = (allObjects, allRelationships, user) => {
+    // Find the current user's agent object
+    // You might need to adjust this logic based on how you link Django users to agents
+    // For now, we'll try to match by username or look for a specific naming pattern
+    const currentUserAgent = allObjects.find(obj =>
+      obj.type === 'agent' && (
+        obj.properties.username === user.username ||
+        obj.name.toLowerCase().includes(user.username.toLowerCase()) ||
+        obj.properties.django_id === user.id // if you have a direct link
+      )
+    );
+
+    if (!currentUserAgent) {
+      // If no agent found for user, return empty data
+      console.warn('No agent found for current user:', user.username);
+      return { objects: [], relationships: [] };
+    }
+
+    console.log('Found current user agent:', currentUserAgent);
+
+    // Find all objects connected to the current user
+    const connectedObjectIds = new Set([currentUserAgent.id]);
+
+    // First pass: Find directly connected objects
+    allRelationships.forEach(rel => {
+      if (rel.fromObjectId === currentUserAgent.id) {
+        connectedObjectIds.add(rel.toObjectId);
+      }
+      if (rel.toObjectId === currentUserAgent.id) {
+        connectedObjectIds.add(rel.fromObjectId);
+      }
+    });
+
+    // Second pass: Find agents in the same contexts
+    const userContexts = Array.from(connectedObjectIds).filter(id => id.startsWith('context-'));
+    userContexts.forEach(contextId => {
+      allRelationships.forEach(rel => {
+        if (rel.toObjectId === contextId && rel.relationshipType === 'participates_in') {
+          connectedObjectIds.add(rel.fromObjectId); // Add other agents in same context
+        }
+        if (rel.fromObjectId === contextId && rel.relationshipType === 'hosts') {
+          connectedObjectIds.add(rel.toObjectId); // Add spaces hosting user's contexts
+        }
+      });
+    });
+
+    // Third pass: Find spaces related to user's contexts
+    const userSpaces = Array.from(connectedObjectIds).filter(id => id.startsWith('space-'));
+    userSpaces.forEach(spaceId => {
+      allRelationships.forEach(rel => {
+        if (rel.fromObjectId === spaceId && rel.relationshipType === 'hosts') {
+          connectedObjectIds.add(rel.toObjectId); // Add contexts in user's spaces
+        }
+      });
+    });
+
+    // Filter objects to only include connected ones
+    const filteredObjects = allObjects.filter(obj => connectedObjectIds.has(obj.id));
+
+    // Filter relationships to only include those between filtered objects
+    const filteredRelationships = allRelationships.filter(rel =>
+      connectedObjectIds.has(rel.fromObjectId) && connectedObjectIds.has(rel.toObjectId)
+    );
+
+    console.log(`Filtered data for user ${user.username}:`, {
+      totalObjects: allObjects.length,
+      filteredObjects: filteredObjects.length,
+      totalRelationships: allRelationships.length,
+      filteredRelationships: filteredRelationships.length,
+      connectedObjectIds: Array.from(connectedObjectIds)
+    });
+
+    return { objects: filteredObjects, relationships: filteredRelationships };
+  };
+
+  // Rest of your existing methods (createUser, deleteUser, etc.) remain the same
   const createUser = async (userData) => {
     try {
-      // This would need to be implemented in your Django backend
-      // const response = await api.post('/api/users/', userData);
-      // const newUser = response.data;
-      // setUsers(prev => [...prev, newUser]);
-      // return newUser;
       throw new Error('User creation not implemented yet');
     } catch (error) {
       console.error('Error creating user:', error);
@@ -125,8 +227,6 @@ export const useHospitalData = () => {
 
   const deleteUser = async (userId) => {
     try {
-      // await api.delete(`/api/users/${userId}/`);
-      // setUsers(prev => prev.filter(user => user.id !== userId));
       throw new Error('User deletion not implemented yet');
     } catch (error) {
       console.error('Error deleting user:', error);
@@ -140,7 +240,6 @@ export const useHospitalData = () => {
       let newObject;
 
       if (objectData.type === 'agent') {
-        // Create agent via Django API
         response = await api.post('/api/agents/', {
           name: objectData.name,
           access_level: objectData.properties.access_level || 3
@@ -151,12 +250,11 @@ export const useHospitalData = () => {
           name: response.data.name,
           type: 'agent',
           category: objectData.category,
-          properties: objectData.properties,
+          properties: { ...objectData.properties, django_id: response.data.id },
           createdAt: response.data.created_at,
           updatedAt: response.data.created_at
         };
       } else if (objectData.type === 'space') {
-        // Create space via Django API
         response = await api.post('/api/spaces/', {
           name: objectData.name,
           capacity: objectData.properties.capacity || 5
@@ -167,7 +265,7 @@ export const useHospitalData = () => {
           name: response.data.name,
           type: 'space',
           category: objectData.category,
-          properties: objectData.properties,
+          properties: { ...objectData.properties, django_id: response.data.id },
           createdAt: response.data.created_at,
           updatedAt: response.data.created_at
         };
@@ -191,7 +289,7 @@ export const useHospitalData = () => {
           name: response.data.name,
           type: 'context',
           category: objectData.category,
-          properties: objectData.properties,
+          properties: { ...objectData.properties, django_id: response.data.id },
           createdAt: response.data.created_at,
           updatedAt: response.data.created_at
         };
@@ -323,6 +421,7 @@ export const useHospitalData = () => {
     relationships,
     loading,
     error,
+    currentUser,
     createUser,
     deleteUser,
     createObject,

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Users, Database, Network, CalendarDays, Building } from 'lucide-react';
 
 export const AgentDashboard = () => {
-  const { objects, relationships } = useHospitalData();
+  const { objects, relationships } = useHospitalData(true);
 
   const stats = {
     totalObjects: objects.length,
