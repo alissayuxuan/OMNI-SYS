@@ -1,283 +1,335 @@
-import { useState } from 'react';
-
-// Mock data
-const initialUsers = [
-  {
-    id: '1',
-    email: 'admin@hospital.com',
-    role: 'admin',
-    name: 'Dr. Sarah Admin',
-    createdAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: '2',
-    email: 'agent@hospital.com',
-    role: 'agent',
-    name: 'Dr. John Agent',
-    createdAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: '3',
-    email: 'nurse@hospital.com',
-    role: 'agent',
-    name: 'Nurse Jane Smith',
-    createdAt: '2024-01-01T00:00:00Z'
-  }
-];
-
-const initialObjects = [
-  // Agents
-  {
-    id: 'agent-1',
-    name: 'Dr. Smith',
-    type: 'agent',
-    category: 'doctor',
-    properties: {
-      username: 'dr.smith',
-      password: 'password123',
-      agentRole: 'doctor'
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 'agent-2',
-    name: 'Nurse Johnson',
-    type: 'agent',
-    category: 'nurse',
-    properties: {
-      username: 'nurse.johnson',
-      password: 'password123',
-      agentRole: 'nurse'
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 'agent-3',
-    name: 'Patient Doe',
-    type: 'agent',
-    category: 'patient',
-    properties: {
-      username: 'patient.doe',
-      password: 'password123',
-      agentRole: 'patient'
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 'agent-4',
-    name: 'MRI Scanner A1',
-    type: 'agent',
-    category: 'device',
-    properties: {
-      username: 'mri.scanner.a1',
-      password: 'device123',
-      agentRole: 'device'
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  // Spaces
-  {
-    id: 'space-1',
-    name: 'Operating Room 1',
-    type: 'space',
-    category: 'surgery-room',
-    properties: {
-      extraInfo: 'Main surgical suite with advanced equipment'
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 'space-2',
-    name: 'Patient Room 101',
-    type: 'space',
-    category: 'patient-room',
-    properties: {
-      extraInfo: 'Single occupancy room with private bathroom'
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 'space-3',
-    name: 'Emergency Ward',
-    type: 'space',
-    category: 'emergency',
-    properties: {
-      extraInfo: '24/7 emergency care facility'
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  // Contexts
-  {
-    id: 'context-1',
-    name: 'Heart Surgery Procedure',
-    type: 'context',
-    category: 'surgery',
-    properties: {
-      description: 'Coronary artery bypass surgery',
-      time: '2024-03-15T09:00:00Z',
-      spaceId: 'space-1',
-      participantIds: ['agent-1', 'agent-2']
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 'context-2',
-    name: 'Patient Consultation',
-    type: 'context',
-    category: 'consultation',
-    properties: {
-      description: 'Regular check-up appointment',
-      time: '2024-03-16T14:30:00Z',
-      spaceId: 'space-2',
-      participantIds: ['agent-1', 'agent-3']
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 'context-3',
-    name: 'MRI Scan Session',
-    type: 'context',
-    category: 'diagnostic',
-    properties: {
-      description: 'Brain MRI scan for diagnosis',
-      time: '2024-03-17T11:00:00Z',
-      participantIds: ['agent-3', 'agent-4']
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  }
-];
-
-const initialRelationships = [
-  {
-    id: 'rel-1',
-    fromObjectId: 'agent-1',
-    toObjectId: 'context-1',
-    relationshipType: 'participates_in',
-    properties: { role: 'surgeon' },
-    createdAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 'rel-2',
-    fromObjectId: 'agent-2',
-    toObjectId: 'context-1',
-    relationshipType: 'participates_in',
-    properties: { role: 'assistant' },
-    createdAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 'rel-3',
-    fromObjectId: 'space-1',
-    toObjectId: 'context-1',
-    relationshipType: 'hosts',
-    properties: {},
-    createdAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 'rel-4',
-    fromObjectId: 'agent-1',
-    toObjectId: 'context-2',
-    relationshipType: 'participates_in',
-    properties: { role: 'doctor' },
-    createdAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 'rel-5',
-    fromObjectId: 'agent-3',
-    toObjectId: 'context-2',
-    relationshipType: 'participates_in',
-    properties: { role: 'patient' },
-    createdAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 'rel-6',
-    fromObjectId: 'space-2',
-    toObjectId: 'context-2',
-    relationshipType: 'hosts',
-    properties: {},
-    createdAt: '2024-01-01T00:00:00Z'
-  }
-];
+import { useState, useEffect } from 'react';
+import api from '../api'; // Your existing API instance
 
 export const useHospitalData = () => {
-  const [users, setUsers] = useState(initialUsers);
-  const [objects, setObjects] = useState(initialObjects);
-  const [relationships, setRelationships] = useState(initialRelationships);
+  const [users, setUsers] = useState([]);
+  const [objects, setObjects] = useState([]);
+  const [relationships, setRelationships] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const createUser = (userData) => {
-    const newUser = {
-      id: `user-${Date.now()}`,
-      ...userData,
-      createdAt: new Date().toISOString()
-    };
-    setUsers(prev => [...prev, newUser]);
-    return newUser;
+  // Fetch all data on component mount
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const fetchAllData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch data from your Django REST API
+      const [agentsResponse, spacesResponse, contextsResponse] = await Promise.all([
+        api.get('/api/agents/'),
+        api.get('/api/spaces/'),
+        api.get('/api/contexts/')
+      ]);
+
+      // Transform Django API data to GraphVisualization format
+      const transformedObjects = [
+        // Transform Agents to objects
+        ...agentsResponse.data.results.map(agent => ({
+          id: `agent-${agent.id}`,
+          name: agent.name,
+          type: 'agent',
+          properties: {
+            username: `agent_${agent.id}`,
+            access_level: agent.access_level
+          },
+          createdAt: agent.created_at,
+        })),
+
+        // Transform Spaces to objects
+        ...spacesResponse.data.results.map(space => ({
+          id: `space-${space.id}`,
+          name: space.name,
+          type: 'space',
+          properties: {
+            capacity: space.capacity,
+          },
+          createdAt: space.created_at,
+        })),
+
+        // Transform Contexts to objects
+        ...contextsResponse.data.results.map(context => ({
+          id: `context-${context.id}`,
+          name: context.name,
+          type: 'context',
+          properties: {
+            time: context.scheduled,
+            spaceId: context.space ? `space-${context.space}` : undefined,
+            participantIds: context.agents.map(agentId => `agent-${agentId}`)
+          },
+          createdAt: context.created_at,
+        }))
+      ];
+
+      // Create relationships based on Context participants and Space associations
+      const transformedRelationships = [];
+      let relationshipId = 1;
+
+      contextsResponse.data.results.forEach(context => {
+        // Create relationships between agents and contexts
+        context.agents.forEach(agentId => {
+          transformedRelationships.push({
+            id: `rel-${relationshipId++}`,
+            fromObjectId: `agent-${agentId}`,
+            toObjectId: `context-${context.id}`,
+            relationshipType: 'participates_in',
+            properties: { role: 'participant' },
+            createdAt: context.created_at
+          });
+        });
+
+        // Create relationship between space and context
+        if (context.space) {
+          transformedRelationships.push({
+            id: `rel-${relationshipId++}`,
+            fromObjectId: `space-${context.space}`,
+            toObjectId: `context-${context.id}`,
+            relationshipType: 'hosts',
+            properties: {},
+            createdAt: context.created_at
+          });
+        }
+      });
+
+      setObjects(transformedObjects);
+      setRelationships(transformedRelationships);
+
+      // Note: Your current backend doesn't have a users endpoint that matches
+      // the hospital data pattern, so we'll leave users empty for now
+      setUsers([]);
+
+    } catch (err) {
+      console.error('Error fetching hospital data:', err);
+      setError(err.message || 'Failed to fetch data');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteUser = (userId) => {
-    setUsers(prev => prev.filter(user => user.id !== userId));
+  const createUser = async (userData) => {
+    try {
+      // This would need to be implemented in your Django backend
+      // const response = await api.post('/api/users/', userData);
+      // const newUser = response.data;
+      // setUsers(prev => [...prev, newUser]);
+      // return newUser;
+      throw new Error('User creation not implemented yet');
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
   };
 
-  const createObject = (objectData) => {
-    const newObject = {
-      id: `${objectData.type}-${Date.now()}`,
-      ...objectData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    setObjects(prev => [...prev, newObject]);
-    return newObject;
+  const deleteUser = async (userId) => {
+    try {
+      // await api.delete(`/api/users/${userId}/`);
+      // setUsers(prev => prev.filter(user => user.id !== userId));
+      throw new Error('User deletion not implemented yet');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
   };
 
-  const updateObject = (objectId, updates) => {
-    setObjects(prev => prev.map(obj => 
-      obj.id === objectId 
-        ? { ...obj, ...updates, updatedAt: new Date().toISOString() }
-        : obj
-    ));
+  const createObject = async (objectData) => {
+    try {
+      let response;
+      let newObject;
+
+      if (objectData.type === 'agent') {
+        // Create agent via Django API
+        response = await api.post('/api/agents/', {
+          name: objectData.name,
+          access_level: objectData.properties.access_level || 3
+        });
+
+        newObject = {
+          id: `agent-${response.data.id}`,
+          name: response.data.name,
+          type: 'agent',
+          category: objectData.category,
+          properties: objectData.properties,
+          createdAt: response.data.created_at,
+          updatedAt: response.data.created_at
+        };
+      } else if (objectData.type === 'space') {
+        // Create space via Django API
+        response = await api.post('/api/spaces/', {
+          name: objectData.name,
+          capacity: objectData.properties.capacity || 5
+        });
+
+        newObject = {
+          id: `space-${response.data.id}`,
+          name: response.data.name,
+          type: 'space',
+          category: objectData.category,
+          properties: objectData.properties,
+          createdAt: response.data.created_at,
+          updatedAt: response.data.created_at
+        };
+      } else if (objectData.type === 'context') {
+        // Create context via Django API
+        const agentIds = objectData.properties.participantIds?.map(id =>
+          id.replace('agent-', '')
+        ) || [];
+        const spaceId = objectData.properties.spaceId ?
+          objectData.properties.spaceId.replace('space-', '') : null;
+
+        response = await api.post('/api/contexts/', {
+          name: objectData.name,
+          scheduled: objectData.properties.time,
+          space_id: spaceId,
+          agent_ids: agentIds
+        });
+
+        newObject = {
+          id: `context-${response.data.id}`,
+          name: response.data.name,
+          type: 'context',
+          category: objectData.category,
+          properties: objectData.properties,
+          createdAt: response.data.created_at,
+          updatedAt: response.data.created_at
+        };
+      }
+
+      if (newObject) {
+        setObjects(prev => [...prev, newObject]);
+        // Refresh relationships to capture new connections
+        await fetchAllData();
+      }
+
+      return newObject;
+    } catch (error) {
+      console.error('Error creating object:', error);
+      throw error;
+    }
   };
 
-  const deleteObject = (objectId) => {
-    setObjects(prev => prev.filter(obj => obj.id !== objectId));
-    // Also remove related relationships
-    setRelationships(prev => prev.filter(rel => 
-      rel.fromObjectId !== objectId && rel.toObjectId !== objectId
-    ));
+  const updateObject = async (objectId, updates) => {
+    try {
+      const objectType = objectId.split('-')[0];
+      const djangoId = objectId.split('-')[1];
+
+      let response;
+
+      if (objectType === 'agent') {
+        response = await api.patch(`/api/agents/${djangoId}/`, {
+          name: updates.name,
+          access_level: updates.properties?.access_level
+        });
+      } else if (objectType === 'space') {
+        response = await api.patch(`/api/spaces/${djangoId}/`, {
+          name: updates.name,
+          capacity: updates.properties?.capacity
+        });
+      } else if (objectType === 'context') {
+        const agentIds = updates.properties?.participantIds?.map(id =>
+          id.replace('agent-', '')
+        );
+        const spaceId = updates.properties?.spaceId ?
+          updates.properties.spaceId.replace('space-', '') : null;
+
+        response = await api.patch(`/api/contexts/${djangoId}/`, {
+          name: updates.name,
+          scheduled: updates.properties?.time,
+          space_id: spaceId,
+          agent_ids: agentIds
+        });
+      }
+
+      if (response) {
+        setObjects(prev => prev.map(obj =>
+          obj.id === objectId
+            ? { ...obj, ...updates, updatedAt: response.data.updated_at || new Date().toISOString() }
+            : obj
+        ));
+        // Refresh to capture relationship changes
+        await fetchAllData();
+      }
+
+      return response?.data;
+    } catch (error) {
+      console.error('Error updating object:', error);
+      throw error;
+    }
   };
 
-  const createRelationship = (relationshipData) => {
-    const newRelationship = {
-      id: `rel-${Date.now()}`,
-      ...relationshipData,
-      createdAt: new Date().toISOString()
-    };
-    setRelationships(prev => [...prev, newRelationship]);
-    return newRelationship;
+  const deleteObject = async (objectId) => {
+    try {
+      const objectType = objectId.split('-')[0];
+      const djangoId = objectId.split('-')[1];
+
+      if (objectType === 'agent') {
+        await api.delete(`/api/agents/${djangoId}/`);
+      } else if (objectType === 'space') {
+        await api.delete(`/api/spaces/${djangoId}/`);
+      } else if (objectType === 'context') {
+        await api.delete(`/api/contexts/${djangoId}/`);
+      }
+
+      setObjects(prev => prev.filter(obj => obj.id !== objectId));
+      // Remove related relationships
+      setRelationships(prev => prev.filter(rel =>
+        rel.fromObjectId !== objectId && rel.toObjectId !== objectId
+      ));
+    } catch (error) {
+      console.error('Error deleting object:', error);
+      throw error;
+    }
   };
 
-  const deleteRelationship = (relationshipId) => {
-    setRelationships(prev => prev.filter(rel => rel.id !== relationshipId));
+  const createRelationship = async (relationshipData) => {
+    try {
+      // For your current Django model, relationships are mainly created
+      // through Context associations. You might need to extend your backend
+      // to support explicit relationships if needed.
+
+      const newRelationship = {
+        id: `rel-${Date.now()}`,
+        ...relationshipData,
+        createdAt: new Date().toISOString()
+      };
+      setRelationships(prev => [...prev, newRelationship]);
+      return newRelationship;
+    } catch (error) {
+      console.error('Error creating relationship:', error);
+      throw error;
+    }
+  };
+
+  const deleteRelationship = async (relationshipId) => {
+    try {
+      // Similar to createRelationship, this would need backend support
+      setRelationships(prev => prev.filter(rel => rel.id !== relationshipId));
+    } catch (error) {
+      console.error('Error deleting relationship:', error);
+      throw error;
+    }
+  };
+
+  // Refresh data function
+  const refreshData = () => {
+    fetchAllData();
   };
 
   return {
     users,
     objects,
     relationships,
+    loading,
+    error,
     createUser,
     deleteUser,
     createObject,
     updateObject,
     deleteObject,
     createRelationship,
-    deleteRelationship
+    deleteRelationship,
+    refreshData
   };
 };
