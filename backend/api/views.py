@@ -37,10 +37,16 @@ class AgentViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         logger.info(f"Creating new agent with data: {request.data}")
         response = super().create(request, *args, **kwargs)
-        logger.info(f"Successfully created agent with ID: {response.data.get('id')}") # TODO: Should first check the response code and log next? 
+        logger.info(f"Successfully created agent with ID: {response.data.get('id')}") 
         agent_id = response.data.get('id')
         if agent_id:
-            CommNodeManager.create_node(agent_id)
+            node = CommNodeManager.create_node(agent_id)
+            if node:
+                client_id = node.client._client_id
+                response.data['client_created'] = True
+                logger.info(f"Communication node created with client ID: {client_id}")
+            else:
+                logger.warning(f"Failed to create communication node for agent ID: {agent_id}")
         return response
 
     def update(self, request, *args, **kwargs):

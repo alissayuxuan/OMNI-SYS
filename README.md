@@ -74,7 +74,6 @@ useful psql commands:
 \d table_name   #show structure of table
 \q              #quit psql terminal
 ```
-
 ### Run Communication System
 #### 1. Launch Docker
 ```bash
@@ -98,6 +97,11 @@ poetry run python backend/mqtt_backend/main.py
 ```
 #### 4. Access EMQX Dashboard as Admin
 Go to http://localhost:18083 and login to EMQX Dashboard with designated credentials.
+
+### Add Authentication in EMQX Dashboard
+```
+Navigate to the sidebar > Click 'Authentication' > 'Create'-button > Choose 'JWT'> Choose "Secret-based" and enter the same secret used by Django
+```
 
 
 ## Reinitializing Database and Migrations
@@ -137,3 +141,5 @@ python manage.py migrate
 ```
 
 Your database and migrations are now reset to a clean state.
+
+

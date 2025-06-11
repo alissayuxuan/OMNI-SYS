@@ -1,7 +1,7 @@
 from mqtt_backend.core.base_node import BaseNode
 
 class CommNodeManager:
-    live_nodes = {}  # {agent_id: BaseNode}
+    live_nodes = {}
 
     @classmethod
     def create_node(cls, agent_id):
