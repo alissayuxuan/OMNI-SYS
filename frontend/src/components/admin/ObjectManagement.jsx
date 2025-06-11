@@ -43,13 +43,7 @@ export const ObjectManagement = () => {
       ]);
       //console.log("agentsRes: \n", agentsRes)
       //console.log("contextsRes: \n", contextsRes)
-      //console.log("spacesRes: \n", spacesRes)
-
-      setAgents(agentsRes.results);
-      setContexts(contextsRes.results);
-      setSpaces(spacesRes.results);
-
-      
+      //console.log("spacesRes: \n", spacesRes)      
 
       const normalizedAgents = agentsRes.results.map(agent => ({
         id: agent.id,
@@ -71,6 +65,9 @@ export const ObjectManagement = () => {
         type: "space",
         createdAt: space.created_at,
       }));
+      setAgents(normalizedAgents);
+      setContexts(normalizedContexts);
+      setSpaces(normalizedSpaces);
 
       setAllObjects([...normalizedAgents, ...normalizedContexts, ...normalizedSpaces]);
 
@@ -228,6 +225,8 @@ export const ObjectManagement = () => {
           isOpen={isCreateDialogOpen}
           onClose={() => setIsCreateDialogOpen(false)}
           refreshData={fetchHospitalData} //alissa
+          agents={agents}
+          spaces={spaces}
         />
 
         <EditObjectForm

@@ -17,7 +17,6 @@ export const EditUserForm = ({ isOpen, onClose, object }) => {
     if (object) {
       setFormData({
         name: object.name,
-        category: object.category,
         ...object.properties
       });
     }
@@ -26,11 +25,10 @@ export const EditUserForm = ({ isOpen, onClose, object }) => {
   const handleSave = () => {
     if (!object) return;
 
-    const { name, category, ...properties } = formData;
+    const { name, ...properties } = formData;
     
     updateObject(object.id, {
       name,
-      category,
       properties
     });
 
@@ -63,15 +61,7 @@ export const EditUserForm = ({ isOpen, onClose, object }) => {
               id="edit-name"
               value={formData.name || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="edit-category">Category</Label>
-            <Input
-              id="edit-category"
-              value={formData.category || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+              placeholder={object.name}
             />
           </div>
 
@@ -86,37 +76,14 @@ export const EditUserForm = ({ isOpen, onClose, object }) => {
                   onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
                 />
               </div>
-              <div>
-                <Label htmlFor="edit-password">Password</Label>
-                <Input
-                  id="edit-password"
-                  type="password"
-                  value={formData.password || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-agent-role">Role</Label>
-                <Input
-                  id="edit-agent-role"
-                  value={formData.agentRole || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, agentRole: e.target.value }))}
-                />
-              </div>
+              
             </>
           )}
 
           {/* Context-specific fields */}
           {object.type === 'context' && (
             <>
-              <div>
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  value={formData.description || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                />
-              </div>
+              
               <div>
                 <Label htmlFor="edit-time">Time</Label>
                 <Input

@@ -164,6 +164,7 @@ export const manageHospitalData = () => {
 
   // Create Context
   const createContext = async (payload) => {
+    console.log("payload manageHospitalData: \n", payload)
     try {
         const response = await api.post("api/contexts/", payload);
         return response.data; 

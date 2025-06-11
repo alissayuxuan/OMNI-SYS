@@ -17,7 +17,6 @@ export const EditObjectForm = ({ isOpen, onClose, object }) => {
     if (object) {
       setFormData({
         name: object.name,
-        category: object.category,
         ...object.properties
       });
     }
@@ -26,11 +25,10 @@ export const EditObjectForm = ({ isOpen, onClose, object }) => {
   const handleSave = () => {
     if (!object) return;
 
-    const { name, category, ...properties } = formData;
+    const { name, ...properties } = formData;
     
     updateObject(object.id, {
       name,
-      category,
       properties
     });
 
@@ -63,15 +61,7 @@ export const EditObjectForm = ({ isOpen, onClose, object }) => {
               id="edit-name"
               value={formData.name || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="edit-category">Category</Label>
-            <Input
-              id="edit-category"
-              value={formData.category || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+              placeholder={object.name}
             />
           </div>
 

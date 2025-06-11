@@ -11,9 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { X } from 'lucide-react';
 import { manageHospitalData } from '@/hooks/manageHospitalData'
 
-export const CreateObjectForms = ({ isOpen, onClose, refreshData }) => {
+export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces }) => {
   const {createAgent, createContext, createSpace } = manageHospitalData();
-  const { createObject, objects } = useHospitalData();
+  //const { createObject, objects } = useHospitalData();
   const { toast } = useToast();
 
   //const [agents, setAgents] = useState([]);
@@ -91,6 +91,10 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData }) => {
   const handleCreateContext = async (e) => {
     setLoading(true);
     e.preventDefault();
+    console.log("contextForm: ", contextForm)
+    console.log("spaceID: ", contextForm.spaceId)
+    console.log("participants: ", contextForm.participantIds)
+    
     if (!contextForm.name || !contextForm.time || !contextForm.spaceId || !contextForm.participantIds) {
       toast({
         title: "Error",
@@ -102,7 +106,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData }) => {
 
     try {  
       // Umwandlung datetime-local in ISO string mit 'Z'
-      const scheduled = new Date(contextForm.time).toISOString();
+      const scheduled = new Date(contextForm.time).toISOString().split('.')[0] + 'Z';//new Date(contextForm.time).toISOString();
   
       const payload = {
         name: contextForm.name.trim(),
@@ -110,6 +114,8 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData }) => {
         space_id: Number(contextForm.spaceId),
         agent_ids: contextForm.participantIds.map(id => Number(id)),
       };
+
+      console.log("payload: \n", payload)
   
       const createdContext = await createContext(payload);
 
@@ -173,8 +179,6 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData }) => {
     }
   };
 
-  const agents = objects.filter(obj => obj.type === 'agent');
-  const spaces = objects.filter(obj => obj.type === 'space');
   const availableParticipants = agents.filter(agent => !contextForm.participantIds.includes(agent.id));
 
   const addParticipant = (participantId) => {
@@ -313,7 +317,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData }) => {
                   <SelectContent>
                     {availableParticipants.map(participant => (
                       <SelectItem key={participant.id} value={participant.id}>
-                        {participant.name} ({participant.category})
+                        {participant.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
