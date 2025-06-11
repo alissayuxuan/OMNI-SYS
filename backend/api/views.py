@@ -12,7 +12,30 @@ import logging
 from mqtt_backend.comm_node_manager import CommNodeManager
 logger = logging.getLogger('omnisyslogger')
 
-class AgentViewSet(viewsets.ModelViewSet):
+# Mixin to add archive/unarchive actions to ModelViewSets 
+class ArchiveMixin:
+        """ Mixin to add archive/unarchive actions to a ModelViewSet.
+        Assumes the model has an 'is_archived' BooleanField."""
+
+        @action(detail=True, methods=['post'])
+        def archive(self, request, pk=None):
+            obj = self.get_object()
+            if obj.is_archived:
+                return Response({'detail': f'{obj.__class__.__name__} already archived.'}, status=status.HTTP_400_BAD_REQUEST)
+            obj.is_archived = True
+            obj.save()
+            return Response({'status': f'{obj.__class__.__name__.lower()} archived'})
+
+        @action(detail=True, methods=['post'])
+        def unarchive(self, request, pk=None):
+            obj = self.get_object()
+            if not obj.is_archived:
+                return Response({'detail': f'{obj.__class__.__name__} is not archived.'}, status=status.HTTP_400_BAD_REQUEST)
+            obj.is_archived = False
+            obj.save()
+            return Response({'status': f'{obj.__class__.__name__.lower()} unarchived'})
+
+class AgentViewSet(ArchiveMixin, viewsets.ModelViewSet):
     """
     ViewSet for Agent CRUD operations
     """
@@ -26,13 +49,22 @@ class AgentViewSet(viewsets.ModelViewSet):
     search_fields = ['name']  # Fields for ?search= parameter
     pagination_class = StandardResultsSetPagination
 
-    def get_queryset(self):
-        """Optionally filter agents by access_level"""
-        queryset = Agent.objects.all()
+    def _filter_queryset(self, queryset):
+        """Apply common filtering for Agent queryset."""
         access_level = self.request.query_params.get('access_level', None)
         if access_level is not None:
             queryset = queryset.filter(access_level=access_level)
         return queryset.order_by('-created_at')
+
+    def get_queryset(self):
+        """Return non-archived agents, optionally filtered."""
+        queryset = Agent.objects.filter(is_archived=False)
+        return self._filter_queryset(queryset)
+
+    def get_queryset_all(self):
+        """Return all agents, optionally filtered."""
+        queryset = Agent.objects.all()
+        return self._filter_queryset(queryset)
 
     def create(self, request, *args, **kwargs):
         logger.info(f"Creating new agent with data: {request.data}")
@@ -67,8 +99,26 @@ class AgentViewSet(viewsets.ModelViewSet):
         CommNodeManager.shutdown_node(agent_id)
         return super().destroy(request, *args, **kwargs)
 
+    @action(detail=True, methods=['post'])
+    def archive(self, request, pk=None):
+        agent = self.get_object()
+        if agent.is_archived:
+            return Response({'detail': 'Agent already archived.'}, status=status.HTTP_400_BAD_REQUEST)
+        agent.is_archived = True
+        agent.save()
+        return Response({'status': 'agent archived'})
 
-class SpaceViewSet(viewsets.ModelViewSet):
+    @action(detail=True, methods=['post'])
+    def unarchive(self, request, pk=None):
+        agent = self.get_object()
+        if not agent.is_archived:
+            return Response({'detail': 'Agent is not archived.'}, status=status.HTTP_400_BAD_REQUEST)
+        agent.is_archived = False
+        agent.save()
+        return Response({'status': 'agent unarchived'})
+
+
+class SpaceViewSet(ArchiveMixin, viewsets.ModelViewSet):
     """
     ViewSet for Space CRUD operations
     """
@@ -81,13 +131,22 @@ class SpaceViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
     pagination_class = StandardResultsSetPagination
 
-    def get_queryset(self):
-        """Optionally filter spaces by capacity"""
-        queryset = Space.objects.all()
+    def _filter_queryset(self, queryset):
+        """Apply common filtering for Space queryset."""
         min_capacity = self.request.query_params.get('min_capacity', None)
         if min_capacity is not None:
             queryset = queryset.filter(capacity__gte=min_capacity)
         return queryset.order_by('-created_at')
+
+    def get_queryset_all(self):
+        """Return all spaces, optionally filtered."""
+        queryset = Space.objects.all()
+        return self._filter_queryset(queryset)
+
+    def get_queryset(self):
+        """Return non-archived spaces, optionally filtered."""
+        queryset = Space.filter(is_archived=False)
+        return self._filter_queryset(queryset)
 
     def create(self, request, *args, **kwargs):
         logger.info(f"User {request.user.username} creating new space with data: {request.data}")
@@ -135,7 +194,7 @@ class SpaceViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class ContextViewSet(viewsets.ModelViewSet):
+class ContextViewSet(ArchiveMixin, viewsets.ModelViewSet):
     """
     ViewSet for Context CRUD operations
     """
@@ -148,10 +207,8 @@ class ContextViewSet(viewsets.ModelViewSet):
     ordering = ['scheduled']  # Upcoming first
     pagination_class = StandardResultsSetPagination
 
-    def get_queryset(self):
-        """Filter contexts with various options"""
-        queryset = Context.objects.all()
-
+    def _filter_queryset(self, queryset):
+        """Apply common filtering for Context queryset."""
         # Filter by space
         space_id = self.request.query_params.get('space', None)
         if space_id is not None:
@@ -171,6 +228,16 @@ class ContextViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(scheduled__lte=to_date)
 
         return queryset.order_by('scheduled')
+
+    def get_queryset_all(self):
+        """Return all contexts, optionally filtered."""
+        queryset = Context.objects.all()
+        return self._filter_queryset(queryset)
+
+    def get_queryset(self):
+        """Return non-archived contexts, optionally filtered."""
+        queryset = Context.objects.filter(is_archived=False)
+        return self._filter_queryset(queryset)
 
     def create(self, request, *args, **kwargs):
         logger.info(f"User {request.user.username} creating new context with data: {request.data}")

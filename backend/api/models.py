@@ -6,6 +6,7 @@ class OMNISysObject(models.Model):
     id = models.AutoField(primary_key=True)
     created_at = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=100)
+    is_archived = models.BooleanField(default=False)
 
     class Meta:
         abstract = True
