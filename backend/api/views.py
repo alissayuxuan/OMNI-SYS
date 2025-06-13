@@ -38,9 +38,13 @@ class AgentViewSet(viewsets.ModelViewSet):
         logger.info(f"Creating new agent with data: {request.data}")
         response = super().create(request, *args, **kwargs)
         logger.info(f"Successfully created agent with ID: {response.data.get('id')}") 
+
         agent_id = response.data.get('id')
-        if agent_id:
-            node = CommNodeManager.create_node(agent_id)
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        if agent_id and username and password:
+            node = CommNodeManager.create_node(agent_id, username, password)
             if node:
                 client_id = node.client._client_id
                 response.data['client_created'] = True

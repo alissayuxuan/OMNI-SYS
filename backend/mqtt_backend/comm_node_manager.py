@@ -4,9 +4,9 @@ class CommNodeManager:
     live_nodes = {}
 
     @classmethod
-    def create_node(cls, agent_id):
+    def create_node(cls, agent_id, username, password):
         if agent_id not in cls.live_nodes:
-            node = BaseNode(str(agent_id))
+            node = BaseNode(str(agent_id), username, password)
             node.start()
             cls.live_nodes[agent_id] = node
             return node
