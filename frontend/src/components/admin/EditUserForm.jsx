@@ -66,7 +66,7 @@ export const EditUserForm = ({ isOpen, onClose, object }) => {
           </div>
 
           {/* Agent-specific fields */}
-          {object.type === 'agent' && (
+          {object.role === 'agent' && (
             <>
               <div>
                 <Label htmlFor="edit-username">Username</Label>
@@ -80,67 +80,10 @@ export const EditUserForm = ({ isOpen, onClose, object }) => {
             </>
           )}
 
-          {/* Context-specific fields */}
-          {object.type === 'context' && (
+          {object.role === 'admin' && (
             <>
-              
-              <div>
-                <Label htmlFor="edit-time">Time</Label>
-                <Input
-                  id="edit-time"
-                  type="datetime-local"
-                  value={formData.time ? new Date(formData.time).toISOString().slice(0, 16) : ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-space">Space</Label>
-                <Select 
-                  value={formData.spaceId || 'none'} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, spaceId: value === 'none' ? undefined : value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a space" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No space selected</SelectItem>
-                    {spaces.map(space => (
-                      <SelectItem key={space.id} value={space.id}>{space.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </>
           )}
-
-          {/* Space-specific fields */}
-          {object.type === 'space' && (
-            <div>
-              <Label htmlFor="edit-extra-info">Extra Information</Label>
-              <Textarea
-                id="edit-extra-info"
-                value={formData.extraInfo || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, extraInfo: e.target.value }))}
-              />
-            </div>
-          )}
-
-          {/* Additional properties */}
-          {Object.entries(formData).map(([key, value]) => {
-            if (['name', 'category', 'username', 'password', 'agentRole', 'description', 'time', 'spaceId', 'extraInfo', 'participantIds'].includes(key)) {
-              return null;
-            }
-            return (
-              <div key={key}>
-                <Label htmlFor={`edit-${key}`}>{key}</Label>
-                <Input
-                  id={`edit-${key}`}
-                  value={String(value) || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, [key]: e.target.value }))}
-                />
-              </div>
-            );
-          })}
 
           <Button onClick={handleSave} className="w-full">
             Save Changes

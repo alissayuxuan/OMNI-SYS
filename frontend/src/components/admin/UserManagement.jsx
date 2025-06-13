@@ -11,15 +11,14 @@ import { useToast } from '@/hooks/use-toast';
 import { manageHospitalData } from '@/hooks/manageHospitalData';
 
 import { CreateUserForms } from './CreateUserForms';
-import { EditUserForm } from './EditUserForm';
+//import { EditUserForm } from './EditUserForm';
 
 export const UserManagement = () => {
-  const { createUser, deleteUser } = useHospitalData();
   const { getAgents, getAgentProfiles, getAdminProfiles } = manageHospitalData();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingObject, setEditingObject] = useState(null);
+  //const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  //const [editingObject, setEditingObject] = useState(null);
   const [filterType, setFilterType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -70,17 +69,17 @@ export const UserManagement = () => {
 
     // TODO
   const handleDeleteUser = (userId) => {
-    deleteUser(userId);
+    //deleteUser(userId);
     toast({
       title: "Success",
       description: "User deleted successfully"
     });
   };
 
-  const handleEditObject = (object) => {
+  /*const handleEditObject = (object) => {
     setEditingObject(object);
     setIsEditDialogOpen(true);
-  };
+  };*/
 
   const filteredUsers = users.filter(obj => {
     const matchesType = filterType === 'all' || obj.role === filterType;
@@ -149,13 +148,13 @@ export const UserManagement = () => {
                 <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    <Button
+                    {/*<Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleEditObject(user)}
                       >
                         <Edit className="h-4 w-4" />
-                    </Button>
+                    </Button>*/}
                     <Button
                       variant="destructive"
                       size="sm"
@@ -175,13 +174,13 @@ export const UserManagement = () => {
         onClose={() => setIsCreateDialogOpen(false)}
         refreshData={fetchHospitalUsers} //alissa
       />
-
+      {/*
       <EditUserForm
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
         object={editingObject}
         refreshData={fetchHospitalUsers} //alissa
-      />
+      />*/}
     </CardContent>
   </Card>
   );
