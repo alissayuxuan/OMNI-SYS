@@ -1,101 +1,186 @@
-import { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { User, Mail, Shield } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Lock, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { manageHospitalData } from '@/hooks/manageHospitalData';
 
 export const ProfileSettings = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || ''
-  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [formData, setFormData] = useState({});
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const { getProfile, updateProfile, changePassword } = manageHospitalData();
 
-  const handleSave = () => {
-    // In a real app, this would make an API call to update the user profile
-    toast({
-      title: "Profile Updated",
-      description: "Your profile has been successfully updated."
-    });
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await getProfile();
+        console.log('Profile data:', data);
+        setProfile(data);
+        const { user } = data;
+        if (user.role === 'admin') {
+          setFormData({
+            username: user.username,
+            first_name: data.first_name,
+            last_name: data.last_name,
+            email: data.email,
+          });
+        } else if (user.role === 'agent') {
+          
+          setFormData({
+            username: user.username,
+            name: data.agent_object?.name || '',
+            agentId: data.agent_object?.id,
+          });
+        }
+      } catch (error) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [toast]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await updateProfile({
+        username: formData.username,
+        ...(profile.user.role === 'admin' && {
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          email: formData.email,
+        }),
+        ...(profile.user.role === 'agent' && {
+          name: formData.name,
+        }),
+      });
+      toast({ title: 'Profile Updated', description: 'Successfully updated your profile.' });
+    } catch (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
   };
 
+  const handleChangePassword = async () => {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({ title: 'Error', description: 'New passwords do not match.', variant: 'destructive' });
+      return;
+    }
+    if (passwordForm.newPassword.length < 8) {
+      toast({ title: 'Error', description: 'Password must be at least 8 characters.', variant: 'destructive' });
+      return;
+    }
+
+    setPasswordSaving(true);
+    try {
+      await changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      toast({ title: 'Password Changed', description: 'Successfully updated your password.' });
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setShowPasswordDialog(false);
+    } catch (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto flex items-center justify-center py-8">
+        <span className="text-gray-500">Loading...</span>
+      </div>
+    );
+  }
+
+  const user = profile?.user;
+  const isAdmin = user?.role === 'admin';
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <User className="h-5 w-5" />
-            <span>Profile Information</span>
+          <CardTitle className="flex items-center space-x-2 text-xl font-semibold">
+            <Settings className="h-5 w-5" />
+            <span>Profile Settings</span>
           </CardTitle>
-          <CardDescription>
-            Manage your account settings and preferences
-          </CardDescription>
+          <CardDescription>Manage your account settings and preferences</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-            <div className="flex-shrink-0">
-              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                <User className="h-6 w-6 text-white" />
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {isAdmin ? (
+              <>
+                <div>
+                  <Label>First Name</Label>
+                  <Input
+                    value={formData.first_name || ''}
+                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                    disabled={saving}
+                  />
+                </div>
+                <div>
+                  <Label>Last Name</Label>
+                  <Input
+                    value={formData.last_name || ''}
+                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                    disabled={saving}
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={formData.email || ''}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                    disabled={saving}
+                  />
+                </div>
+              </>
+            ) : (
+              <div>
+                <Label>Name</Label>
+                <Input
+                  value={formData.name || ''}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  disabled={saving}
+                />
               </div>
+            )}
+
+            <div>
+              <Label>Username</Label>
+              <Input
+                value={formData.username || ''}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                disabled={saving}
+              />
             </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-medium">{user?.name || 'User'}</h3>
-              <p className="text-sm text-gray-600 flex items-center space-x-2">
-                <Mail className="h-4 w-4" />
-                <span>{user?.email}</span>
-              </p>
-              <div className="mt-2">
-                <Badge variant={user?.role === 'admin' ? 'default' : 'secondary'}>
-                  <Shield className="h-3 w-3 mr-1" />
-                  {user?.role === 'admin' ? 'Administrator' : 'Agent'}
-                </Badge>
-              </div>
+            <div>
+              <Label>Role</Label>
+              <Input value={user.role} disabled readOnly />
+            </div>
+            <div>
+              <Label>Account Created</Label>
+              <Input value={new Date(user.date_joined).toLocaleDateString()} disabled readOnly />
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter your full name"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="Enter your email address"
-              />
-            </div>
-
-            <div>
-              <Label>Account Type</Label>
-              <div className="mt-1">
-                <Badge variant="outline" className="text-sm">
-                  {user?.role === 'admin' ? 'Administrator Account' : 'Agent Account'}
-                </Badge>
-                <p className="text-xs text-gray-500 mt-1">
-                  Contact your administrator to change account permissions
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t">
-            <Button onClick={handleSave} className="w-full">
-              Save Changes
+          <div className="pt-4">
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </CardContent>
@@ -103,26 +188,53 @@ export const ProfileSettings = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Account Statistics</CardTitle>
-          <CardDescription>
-            Overview of your account activity
-          </CardDescription>
+          <CardTitle className="text-lg font-semibold">Security</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">
-                {user?.role === 'admin' ? 'Admin' : 'Agent'}
-              </div>
-              <div className="text-sm text-gray-600">Role</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">Active</div>
-              <div className="text-sm text-gray-600">Status</div>
-            </div>
-          </div>
+        <CardContent className="space-y-4">
+          <Button variant="outline" onClick={() => setShowPasswordDialog(true)}>
+            <Lock className="h-4 w-4 mr-2" />
+            Change Password
+          </Button>
         </CardContent>
       </Card>
+
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change Password</DialogTitle>
+            <DialogDescription>Enter your current password and choose a new one</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Current Password</Label>
+              <Input
+                type="password"
+                value={passwordForm.currentPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>New Password</Label>
+              <Input
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Confirm New Password</Label>
+              <Input
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+              />
+            </div>
+            <Button onClick={handleChangePassword} disabled={passwordSaving} className="w-full">
+              {passwordSaving ? 'Updating...' : 'Update Password'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

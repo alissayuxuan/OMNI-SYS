@@ -1,94 +1,90 @@
-/*import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip"; //TODO
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"; //TODO
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-//import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { AdminDashboard } from "@/pages/AdminDashboard";
-import AgentDashboard from "@/pages/AgentDashboard";
-import Home from "@/pages/Home";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/toaster";
+
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import NotFound from "@/pages/NotFound";
-import '@/index.css';
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AgentDashboard } from "@/pages/AgentDashboard";
+import { AdminDashboard } from "@/pages/AdminDashboard";
+import Home from "@/pages/Home";
+
+import "@/index.css";
 
 const queryClient = new QueryClient();
 
-const AppContent = () => {
+function Logout() {
+  localStorage.clear();
+  return <Navigate to="/login" />;
+}
 
+
+function AppContent() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Routes>
-        <Route path="/" element={<Home/>} />
+    <Routes>
+      <Route path="/" element={<Home />} />
 
-        <Route
-          path="/agent-dashboard"
-          element={
-            <ProtectedRoute role="agent">
-              <AgentDashboard />
-            </ProtectedRoute>
-          }
-        />
+      <Route
+        path="/agent-dashboard"
+        element={
+          <ProtectedRoute role="agent">
+            <AgentDashboard />
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="/admin-dashboard"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+      <Route
+        path="/admin-dashboard"
+        element={
+          <ProtectedRoute role="admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
 
-        <Route path="/login" element={<Login />} />
-        
-        <Route 
-          path="/register" 
-          element={
-            <ProtectedRoute role="admin">
-              <Register />
-            </ProtectedRoute>
-          } 
-        /> 
+      <Route path="/login" element={<Login />} />
+      <Route path="/logout" element={<Logout />} />
 
-        <Route path="*" element={<NotFound />}/>
-      </Routes>
-    </div>
+      <Route
+        path="/register"
+        element={
+          <ProtectedRoute role="admin">
+            <Register />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
-};
+}
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
         <BrowserRouter>
           <AppContent />
         </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
 
-*/
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+/*
+//current App.jsx file (by Alissa) -> need to be adapted to use Toasts
 import React from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import Login from "@/pages/Login"
@@ -153,4 +149,4 @@ function App() {
   )
 }
 
-export default App
+export default App*/

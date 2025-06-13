@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import  ( RegisterUserView, CustomTokenRefreshView, CustomTokenObtainPairView, 
-UserList, UserDetail, AgentProfileList, AgentProfileDetail, AdminProfileList, AdminProfileDetail )
+UserList, UserDetail, AgentProfileList, AgentProfileDetail, AdminProfileList, AdminProfileDetail,
+UserProfileView, ChangePasswordView )
 
 urlpatterns = [
     path('user/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -12,4 +13,7 @@ urlpatterns = [
     path('agent-profiles/<int:pk>/', AgentProfileDetail.as_view(), name='agent-profile-detail'),
     path('admin-profiles/', AdminProfileList.as_view(), name='admin-profile-list'),
     path('admin-profiles/<int:pk>/', AdminProfileDetail.as_view(), name='admin-profile-detail'),
+    #path('profile/', GetUserProfileView.as_view(), name='get-user-profile'),
+    path('profile/', UserProfileView.as_view(), name='get-or-update-profile'),
+    path('change-password/', ChangePasswordView.as_view(), name='change-password'),
 ]
