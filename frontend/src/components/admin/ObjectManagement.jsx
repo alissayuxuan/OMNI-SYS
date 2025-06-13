@@ -57,6 +57,9 @@ export const ObjectManagement = () => {
         name: context.name,
         type: "context",
         createdAt: context.created_at,
+        time: context.time,
+        spaceId: context.space_id,
+        participantIds: context.agent_ids
       }));
   
       const normalizedSpaces = spacesRes.results.map(space => ({
@@ -64,6 +67,7 @@ export const ObjectManagement = () => {
         name: space.name,
         type: "space",
         createdAt: space.created_at,
+        capacity: space.capacity
       }));
       setAgents(normalizedAgents);
       setContexts(normalizedContexts);
@@ -234,6 +238,8 @@ export const ObjectManagement = () => {
           onClose={() => setIsEditDialogOpen(false)}
           object={editingObject}
           refreshData={fetchHospitalData} //alissa
+          agents={agents}
+          spaces={spaces}
         />
       </CardContent>
     </Card>

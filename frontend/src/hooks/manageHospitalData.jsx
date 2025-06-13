@@ -311,7 +311,7 @@ const getAllContexts = async (filters = {}) => {
   const updateAgent = async (agentId, updatedData, isPartial = true) => {
     try {
       const method = isPartial ? "patch" : "put";
-      const response = await api[method](`/agents/${agentId}/`, updatedData);
+      const response = await api[method](`/api/agents/${agentId}/`, updatedData);
   
       console.log("Agent updated successfully:", response.data);
       return response.data;
@@ -322,8 +322,39 @@ const getAllContexts = async (filters = {}) => {
     }
   };
 
-  // TODO: Update Context -> only add/ remove Agent from Context
-  // TODO: Update Space ??
+  // Update Context
+  const updateContext = async (contextId, updatedData, isPartial = true) => {
+    try {
+      const method = isPartial ? "patch" : "put";
+      const res = await api[method](`/api/contexts/${contextId}/`, updatedData);
+      console.log("Context updated successfully:", res.data);
+      return res.data;
+    } catch (error) {
+      const msg =
+        error.response?.data?.detail ||
+        Object.values(error.response?.data || {})?.[0]?.[0] ||
+        "Failed to update context";
+      console.error("Error updating context:", msg);
+      throw new Error(msg);
+    }
+  };
+
+  // Update Space
+  const updateSpace = async (spaceId, updatedData, isPartial = true) => {
+    try {
+      const method = isPartial ? "patch" : "put";
+      const res = await api[method](`/api/spaces/${spaceId}/`, updatedData);
+      console.log("Space updated successfully:", res.data);
+      return res.data;
+    } catch (error) {
+      const msg =
+        error.response?.data?.detail ||
+        Object.values(error.response?.data || {})?.[0]?.[0] ||
+        "Failed to update space";
+      console.error("Error updating space:", msg);
+      throw new Error(msg);
+    }
+  };
 
   // Update a user by ID
  const updateUser = async (userId, payload) => {
@@ -356,6 +387,63 @@ const getAllContexts = async (filters = {}) => {
     }
   };
 
+
+  const getProfile = async () => {
+    try {
+      const res = await api.get(`api/auth/profile/`);
+      return res.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || "Failed to fetch agent profile");
+    }
+  }
+
+  /*Beispiel:
+  {
+    username: "new_username",
+    first_name: "Alissa",
+    last_name: "Wang",
+    email: "new@example.com"
+  }
+*/
+  const updateProfile = async (updatedData) => {
+    try {
+      const res = await api.put(`api/auth/profile/`, updatedData);
+      console.log("Profile updated successfully:", res.data);
+      return res.data;
+    } catch (error) {
+      const msg =
+        error.response?.data?.detail ||
+        Object.values(error.response?.data || {})?.[0]?.[0] ||
+        "Failed to update profile";
+      console.error("Error updating profile:", msg);
+      throw new Error(msg);
+    }
+  };
+
+
+  /* Beispiel:
+  await changePassword({
+    currentPassword: "oldpass123",
+    newPassword: "securePass456",
+  });
+  */
+  const changePassword = async ({ currentPassword, newPassword }) => {
+    try {
+      const res = await api.post(`api/auth/change-password/`, {
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      return res.data;
+    } catch (error) {
+      const msg =
+        error.response?.data?.current_password?.[0] ||
+        error.response?.data?.new_password?.[0] ||
+        error.response?.data?.detail ||
+        "Failed to change password";
+      throw new Error(msg);
+    }
+  };
+
    /* Archive and Unarchive Objects */
 
     const archive = async (model, id) => {
@@ -379,6 +467,7 @@ const getAllContexts = async (filters = {}) => {
     };
 
   return {
+    getProfile,
     getAgents,
     getAllAgents,
     getContexts,
@@ -401,6 +490,10 @@ const getAllContexts = async (filters = {}) => {
     updateAgent,
     archive,
     unarchive,
+    updateContext,
+    updateSpace,
+    updateProfile,
+    changePassword
   };
 }
 

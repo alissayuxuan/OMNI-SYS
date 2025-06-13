@@ -31,11 +31,9 @@ class AdminProfile(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
-    #access_level = models.IntegerField(default=1)
 
 
 class AgentProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'role': 'agent'}, related_name='agent_profile')
-    #agent_type = models.CharField(max_length=50)
 
     agent_object = models.OneToOneField(Agent, on_delete=models.CASCADE, null=False)
