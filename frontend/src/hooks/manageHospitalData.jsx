@@ -465,6 +465,8 @@ export const manageHospitalData = () => {
     deleteAgent,
     deleteContext,
     deleteSpace,
+    deleteAgentProfile,
+    deleteAdminProfile,
     updateAgent,
     archive,
     unarchive,
