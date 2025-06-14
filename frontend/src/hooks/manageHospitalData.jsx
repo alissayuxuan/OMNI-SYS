@@ -501,6 +501,8 @@ const getAllContexts = async (filters = {}) => {
     deleteAgent,
     deleteContext,
     deleteSpace,
+    deleteAgentProfile,
+    deleteAdminProfile,
     updateAgent,
     archive,
     unarchive,
