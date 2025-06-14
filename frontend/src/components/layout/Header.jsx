@@ -1,5 +1,3 @@
-//import { useAuth } from '@/hooks/useAuth';
-
 import { useContext } from "react";
 import { UserContext } from "@/components/auth/ProtectedRoute";
 import { useNavigate } from "react-router-dom"
@@ -8,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { LogOut, User } from 'lucide-react';
 
 export const Header = () => {
-  //const { user, logout } = useAuth();
   const navigate = useNavigate()
 
   const logout = () => {

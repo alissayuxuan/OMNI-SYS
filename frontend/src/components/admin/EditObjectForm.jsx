@@ -46,10 +46,6 @@ export const EditObjectForm = ({ isOpen, onClose, object, refreshData, agents, s
   const handleSave = async () => {
     try {
       if (object.type === "agent") {
-        console.log("AGENT OBJECT:", object);
-        console.log("AGENT ID:", object.id); // das muss agent_object.id sein!
-        console.log("Update Payload:", { name: agentForm.name });
-
         await updateAgent(object.id, { name: agentForm.name });
       } else if (object.type === "context") {
         await updateContext(object.id, {

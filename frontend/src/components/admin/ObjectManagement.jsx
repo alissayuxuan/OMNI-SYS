@@ -5,24 +5,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Edit, Database } from 'lucide-react';
+import { Plus, Trash2, Edit, Database, Archive } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CreateObjectForms } from './CreateObjectForms';
 import { EditObjectForm } from './EditObjectForm';
 
 import { manageHospitalData } from "@/hooks/manageHospitalData";
+import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+
+//import { CreatedRelationshipForm } from '@/CreateRelationshipForm';
 
 
 export const ObjectManagement = () => {
-  //const { objects, deleteObject } = useHospitalData();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isRelationshipDialogOpen, setIsRelationshipDialogOpen] = useState(false);
   const [editingObject, setEditingObject] = useState(null);
   const [filterType, setFilterType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  //alissa
   const [loading, setLoading] = useState(false)
   const {getAgents, getContexts, getSpaces, deleteAgent, deleteContext, deleteSpace} = manageHospitalData();
   const [agents, setAgents] = useState([]);
@@ -30,6 +32,9 @@ export const ObjectManagement = () => {
   const [spaces, setSpaces] = useState([]);
 
   const [allObjects, setAllObjects] = useState([]);
+
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, object: null, type: null });
+
 
   
   const fetchHospitalData = useCallback(async () => {
@@ -40,10 +45,7 @@ export const ObjectManagement = () => {
         getAgents(),
         getContexts(),
         getSpaces()
-      ]);
-      //console.log("agentsRes: \n", agentsRes)
-      //console.log("contextsRes: \n", contextsRes)
-      //console.log("spacesRes: \n", spacesRes)      
+      ]);   
 
       const normalizedAgents = agentsRes.results.map(agent => ({
         id: agent.id,
@@ -128,6 +130,22 @@ export const ObjectManagement = () => {
     setIsEditDialogOpen(true);
   };
 
+  // TODO: archive logic 
+  const handleArchiveObject = async(object) => {
+  };
+
+
+  const handleConfirm = async () => {
+    if (confirmDialog.type === 'delete') {
+      await handleDeleteObject(confirmDialog.object);
+    } else if (confirmDialog.type === 'archive') {
+      // archive logic placeholder
+      await handleArchiveObject(confirmDialog.object);
+    }
+    setConfirmDialog({ open: false, object: null, type: null });
+  };
+
+
   const filteredObjects = allObjects.filter(obj => {
     const matchesType = filterType === 'all' || obj.type === filterType;
     const matchesSearch = obj.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -186,7 +204,7 @@ export const ObjectManagement = () => {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>Category</TableHead>
+              <TableHead>Id</TableHead>
               <TableHead>Created</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -212,9 +230,16 @@ export const ObjectManagement = () => {
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setConfirmDialog({ open: true, object: object, type: 'archive' })}
+                    >
+                      <Archive className="h-4 w-4" />
+                    </Button>
+                    <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => handleDeleteObject(object)}
+                      onClick={() => setConfirmDialog({ open: true, object: object, type: 'delete' })}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -233,6 +258,13 @@ export const ObjectManagement = () => {
           spaces={spaces}
         />
 
+        {/*<CreatedRelationshipForms 
+          isOpen={isRelationshipDialogOpen}
+          onClose={() => setIsRelationshipDialogOpen(false)}
+          refreshData={fetchHospitalData} //alissa
+          agents={agents}
+          spaces={spaces}
+        />*/}
         <EditObjectForm
           isOpen={isEditDialogOpen}
           onClose={() => setIsEditDialogOpen(false)}
@@ -241,6 +273,20 @@ export const ObjectManagement = () => {
           agents={agents}
           spaces={spaces}
         />
+
+
+        <Dialog open={confirmDialog.open} onOpenChange={() => setConfirmDialog({ open: false, id: null, type: null })}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{confirmDialog.type === 'delete' ? 'Delete Relationship' : 'Archive Relationship'}</DialogTitle>
+            </DialogHeader>
+            <DialogDescription>Are you sure you want to {confirmDialog.type} this relationship?</DialogDescription>
+            <DialogFooter className="flex justify-end space-x-2 mt-4">
+              <Button variant="outline" onClick={() => setConfirmDialog({ open: false, id: null, type: null })}>Cancel</Button>
+              <Button variant={confirmDialog.type === 'delete' ? 'destructive' : 'default'} onClick={handleConfirm}>Confirm</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
