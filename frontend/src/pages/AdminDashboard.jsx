@@ -8,13 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Database, Network, BarChart3, Building, CalendarDays} from 'lucide-react';
 
-import { useContext } from "react";
-import { UserContext } from "@/components/auth/ProtectedRoute";
+import { RelationshipManagement } from '@/components/admin/RelationshipManagement';
 
 export const AdminDashboard = () => {
   const { objects, relationships } = useHospitalData(false);
-
-  const user = useContext(UserContext);
 
 
   const stats = {
@@ -97,6 +94,7 @@ export const AdminDashboard = () => {
         <Tabs defaultValue="objects" className="space-y-6">
           <TabsList>
             <TabsTrigger value="objects">Object Management</TabsTrigger>
+            <TabsTrigger value="relationships">Relationship Management</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="graph">System Graph</TabsTrigger>
             <TabsTrigger value="settings">Profile Settings</TabsTrigger>
@@ -104,6 +102,10 @@ export const AdminDashboard = () => {
 
           <TabsContent value="objects">
             <ObjectManagement />
+          </TabsContent>
+
+          <TabsContent value="relationships">
+            <RelationshipManagement />
           </TabsContent>
 
           <TabsContent value="users">

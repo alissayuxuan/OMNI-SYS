@@ -184,6 +184,19 @@ export const manageHospitalData = () => {
     }
   };
 
+  // Create Relationship
+  const createRelationship = async (payload) => {
+    console.log("createRelationship - ", payload)
+    return;
+    try {
+      const response = await api.post("api/relationships/", payload);
+      return response.data; 
+    } catch (error) {
+      const message = error.response?.data?.message || "Error occured when creating the Relationship.";
+      throw new Error(message); 
+    }
+  }
+
 
   {/* Delete Objects*/}
   // TODO: delete AgentUser as well!!
@@ -448,6 +461,7 @@ export const manageHospitalData = () => {
     createAdmin,
     createContext,
     createSpace,
+    createRelationship,
     deleteAgent,
     deleteContext,
     deleteSpace,
