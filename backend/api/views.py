@@ -56,14 +56,16 @@ class AgentViewSet(ArchiveMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(access_level=access_level)
         return queryset.order_by('-created_at')
 
+    @action(detail=False, methods=['get'])
+    def get_queryset_all(self):
+        """Return all agents, optionally filtered."""
+        queryset = Agent.objects.filter(context__space__owner=request.user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def get_queryset(self):
         """Return non-archived agents, optionally filtered."""
         queryset = Agent.objects.filter(is_archived=False)
-        return self._filter_queryset(queryset)
-
-    def get_queryset_all(self):
-        """Return all agents, optionally filtered."""
-        queryset = Agent.objects.all()
         return self._filter_queryset(queryset)
 
     def create(self, request, *args, **kwargs):
@@ -99,25 +101,6 @@ class AgentViewSet(ArchiveMixin, viewsets.ModelViewSet):
         CommNodeManager.shutdown_node(agent_id)
         return super().destroy(request, *args, **kwargs)
 
-    @action(detail=True, methods=['post'])
-    def archive(self, request, pk=None):
-        agent = self.get_object()
-        if agent.is_archived:
-            return Response({'detail': 'Agent already archived.'}, status=status.HTTP_400_BAD_REQUEST)
-        agent.is_archived = True
-        agent.save()
-        return Response({'status': 'agent archived'})
-
-    @action(detail=True, methods=['post'])
-    def unarchive(self, request, pk=None):
-        agent = self.get_object()
-        if not agent.is_archived:
-            return Response({'detail': 'Agent is not archived.'}, status=status.HTTP_400_BAD_REQUEST)
-        agent.is_archived = False
-        agent.save()
-        return Response({'status': 'agent unarchived'})
-
-
 class SpaceViewSet(ArchiveMixin, viewsets.ModelViewSet):
     """
     ViewSet for Space CRUD operations
@@ -138,14 +121,16 @@ class SpaceViewSet(ArchiveMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(capacity__gte=min_capacity)
         return queryset.order_by('-created_at')
 
+    @action(detail=False, methods=['get'])
     def get_queryset_all(self):
         """Return all spaces, optionally filtered."""
-        queryset = Space.objects.all()
-        return self._filter_queryset(queryset)
+        queryset = Space.objects.filter(owner=request.user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def get_queryset(self):
         """Return non-archived spaces, optionally filtered."""
-        queryset = Space.filter(is_archived=False)
+        queryset = Space.objects.filter(is_archived=False)
         return self._filter_queryset(queryset)
 
     def create(self, request, *args, **kwargs):
@@ -229,10 +214,12 @@ class ContextViewSet(ArchiveMixin, viewsets.ModelViewSet):
 
         return queryset.order_by('scheduled')
 
+    @action(detail=False, methods=['get'])
     def get_queryset_all(self):
         """Return all contexts, optionally filtered."""
-        queryset = Context.objects.all()
-        return self._filter_queryset(queryset)
+        queryset = Context.objects.filter(space__owner=request.user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def get_queryset(self):
         """Return non-archived contexts, optionally filtered."""

@@ -41,6 +41,18 @@ export const manageHospitalData = () => {
     }
   };
 
+  const getAllAgents = async (filters = {}) => {
+    try {
+      const response = await api.get("/api/agents/get_queryset_all/", {
+        params: filters,
+      });
+      return response.data;
+    } catch (error) {
+    const message = error.response?.data?.detail || "Error fetching all agents";
+    throw new Error(message);
+  }
+};
+
   // get Contexts
   const getContexts = async (filters = {}) => {
     try {
@@ -57,6 +69,18 @@ export const manageHospitalData = () => {
     }
   };
 
+const getAllContexts = async (filters = {}) => {
+  try {
+    const response = await api.get("/api/contexts/get_queryset_all/", {
+      params: filters,
+    });
+    return response.data; // enthält z. B. { results: [...], count: ..., next: ..., previous: ... }
+  } catch (error) {
+    const message = error.response?.data?.detail || "Error fetching all contexts";
+    console.error("Error fetching all contexts:", message);
+    throw new Error(message);
+  }
+};
   // get Spaces
   const getSpaces = async (filters = {}) => {
     try {
@@ -71,6 +95,18 @@ export const manageHospitalData = () => {
         throw new Error(message);
     }
   };
+
+  const getAllSpaces = async () => {
+  try {
+    const response = await api.get("/api/spaces/get_queryset_all/", {
+      params: filters
+    });
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.detail || "Error fetching all spaces";
+    throw new Error(message);
+  }
+};
 
   // Get all users (optional: filter by role)
   const getUsers = async (role = null) => {
@@ -134,9 +170,7 @@ export const manageHospitalData = () => {
     }
   };
 
-
-
-    /* Create Objects */
+  /* Create Objects */
 
   // Create User & Agent
   const createAgent = async (payload) => {
@@ -322,15 +356,35 @@ export const manageHospitalData = () => {
     }
   };
 
+   /* Archive and Unarchive Objects */
 
+    const archive = async (model, id) => {
+        try {
+            const response = await api.post(`/api/${model}/${id}/archive/`);
+            return response.data;
+        } catch (error) {
+            const message = error.response?.data?.detail || `Error archiving ${model}`;
+            throw new Error(message);
+        }
+    };
 
-
-
+    const unarchive = async (model, id) => {
+        try {
+            const response = await api.post(`/api/${model}/${id}/unarchive/`);
+            return response.data;
+        } catch (error) {
+            const message = error.response?.data?.detail || `Error unarchiving ${model}`;
+            throw new Error(message);
+        }
+    };
 
   return {
     getAgents,
+    getAllAgents,
     getContexts,
+    getAllContexts,
     getSpaces,
+    getAllSpaces,
     getUsers,
     getUser,
     getAgentProfiles,
@@ -345,11 +399,10 @@ export const manageHospitalData = () => {
     deleteContext,
     deleteSpace,
     updateAgent,
+    archive,
+    unarchive,
   };
 }
-
-
-
 
   /*const getAgents = async (filters = {}) => {
     try {
