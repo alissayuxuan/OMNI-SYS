@@ -69,7 +69,7 @@ export const ObjectManagement = () => {
       queryClient.invalidateQueries({queryKey: ['spaces']});
     } catch (err) {
       console.error("Error:", err);
-      toast({ title: "Error", description: "An error occurred" });
+      toast({ title: "Error", description: err.message, variant: 'destructive'  });
     }
   };
 

@@ -12,6 +12,7 @@ import { manageHospitalData } from '@/hooks/manageHospitalData';
 export const EditObjectForm = ({ isOpen, onClose, object, refreshData, agents, spaces }) => {
   const { toast } = useToast();
   const { updateAgent, updateContext, updateSpace } = manageHospitalData();
+  const [ isSaving, setIsSaving ] = useState(false);
   const [agentForm, setAgentForm] = useState({ name: '' });
   const [contextForm, setContextForm] = useState({
     name: '',
@@ -44,7 +45,9 @@ export const EditObjectForm = ({ isOpen, onClose, object, refreshData, agents, s
   if (!object) return null;
 
   const handleSave = async () => {
+    setIsSaving(true);
     try {
+
       if (object.type === "agent") {
         await updateAgent(object.id, { name: agentForm.name });
       } else if (object.type === "context") {
@@ -62,12 +65,13 @@ export const EditObjectForm = ({ isOpen, onClose, object, refreshData, agents, s
       }
 
       toast({ title: "Success", description: "Object updated successfully" });
-      refreshData();
     } catch (err) {
       console.error(err);
-      toast({ title: "Error", description: "Failed to update object" });
+      toast({ title: "Error", description: "Failed to update object" , variant: 'destructive' });
     } finally {
       onClose();
+      refreshData();
+      setIsSaving(false);
     }
   };
 
@@ -212,8 +216,8 @@ export const EditObjectForm = ({ isOpen, onClose, object, refreshData, agents, s
             </>
           )}
 
-          <Button onClick={handleSave} className="w-full">
-            Save Changes
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </DialogContent>

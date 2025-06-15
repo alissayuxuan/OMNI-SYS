@@ -16,7 +16,7 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
   const { toast } = useToast();
 
   //const [agents, setAgents] = useState([]);
-  const [loading, setLoading] = useState(false); // TODO
+  const [isCreating, setIsCreating] = useState(false); // TODO
 
 
   // Form states for different object types
@@ -48,7 +48,7 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
   /* Create Objects */
 
   const handleCreateAgent = async (e) => {
-    setLoading(true);
+    setIsCreating(true);
     e.preventDefault();
     // TODO: name requirements check
     console.log("handleCreateAgent")
@@ -72,20 +72,19 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
         description: `Context '${createdAgent.name}' created.`,
       });
       console.log("Context created:", createdAgent)
-      refreshData(); //refresh Hospital Page
 
     } catch (error){
       alert(error)
     } finally {
-      setLoading(false)
+      setIsCreating(false)
       resetForms();
       onClose();
-      setLoading(false);
+      refreshData(); //refresh Hospital Page
     }
   };
 
   const handleCreateAdmin = async (e) => {
-    setLoading(true);
+    setIsCreating(true);
     e.preventDefault();
     // TODO: name requirements check
     console.log("handleCreateAdmin")
@@ -110,15 +109,15 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
         description: `admin '${createdAdmin}' created.`,
       });
       console.log("admin created:", createdAdmin)
-      refreshData(); //refresh User Page
 
     } catch (error){
       alert(error)
     } finally {
-      setLoading(false)
       resetForms();
       onClose();
-      setLoading(false);
+      setIsCreating(false);
+      refreshData(); //refresh User Page
+
     }
   };
 
@@ -183,8 +182,8 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
               />
             </div>
             
-            <Button onClick={handleCreateAgent} className="w-full">
-              Create Agent
+            <Button onClick={handleCreateAgent} disabled={isCreating} className="w-full">
+              {isCreating ? "Creating..." : "Create Agent"}
             </Button>
           </TabsContent>
 
@@ -266,8 +265,8 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
               />
             </div>
             
-            <Button onClick={handleCreateAdmin} className="w-full">
-              Create Admin
+            <Button onClick={handleCreateAdmin} disabled={isCreating} className="w-full">
+              {isCreating ? "Creating..." : "Create Admin"}
             </Button>
           </TabsContent>
           
