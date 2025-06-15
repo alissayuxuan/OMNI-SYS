@@ -13,11 +13,9 @@ import { manageHospitalData } from '@/hooks/manageHospitalData'
 
 export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces }) => {
   const {createAgent, createContext, createSpace } = manageHospitalData();
-  //const { createObject, objects } = useHospitalData();
   const { toast } = useToast();
 
-  //const [agents, setAgents] = useState([]);
-  const [loading, setLoading] = useState(false); // TODO
+  const [isCreating, setIsCreating] = useState(false); // TODO
 
 
   // Form states for different object types
@@ -52,7 +50,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
   /* Create Objects */
 
   const handleCreateAgent = async (e) => {
-    setLoading(true);
+    setIsCreating(true);
     e.preventDefault();
     // TODO: name requirements check
     console.log("handleCreateAgent")
@@ -70,26 +68,27 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
       console.log("creating agent")
       const createdAgent = await createAgent(agentForm);
 
-      alert(`agent '${createdAgent.name}' created!`)
       toast({
         title: "Successful",
-        description: `Context '${createdAgent.name}' created.`,
+        description: `Agent sucessfully created.`,
       });
-      console.log("Context created:", createdAgent)
       refreshData(); //refresh Hospital Page
 
     } catch (error){
-      alert(error)
+      toast({
+        title: "Error",
+        description: error.message || "An error occurred while creating the agent",
+        variant: "destructive"
+      });      
     } finally {
-      setLoading(false)
       resetForms();
       onClose();
-      setLoading(false);
+      setIsCreating(false);
     }
   };
 
   const handleCreateContext = async (e) => {
-    setLoading(true);
+    setIsCreating(true);
     e.preventDefault();
     console.log("contextForm: ", contextForm)
     console.log("spaceID: ", contextForm.spaceId)
@@ -119,36 +118,33 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
   
       const createdContext = await createContext(payload);
 
-      alert(`context '${createdContext.name}' created!`)
       toast({
         title: "Successful",
-        description: `Context '${createdContext.name}' created.`,
+        description: `Context successfully created.`,
       });
-      console.log("Context created:", createdContext);
-      refreshData();
     } catch (err) {
-      console.error("Error:", err);
-      alert("An error occured");
       toast({
         title: "Error",
-        description: "An error occured"
+        description: err.message || "An error occurred while creating the context",
+        variant: "destructive"
       });
     } finally {
+      refreshData();
       resetForms();
       onClose();
-      setLoading(false);
+      setIsCreating(false);
     }
   };
 
   const handleCreateSpace = async(e) => {
     console.log("handleCreateSpace")
-    setLoading(true);
+    setIsCreating(true);
     e.preventDefault();
 
     if (!spaceForm.name || !spaceForm.capacity) {
       toast({
         title: "Error",
-        description: "Please enter a space name",
+        description: "Please enter all required fields",
         variant: "destructive"
       });
       return;
@@ -157,25 +153,22 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
     try {
       const createdSpace = await createSpace(spaceForm);
 
-      alert(`space '${createdSpace.name}' created!`)
       toast({
         title: "Successful",
-        description: `Space '${createdSpace.name}' created.`,
+        description: `Space sucessfully created.`,
       });
-      console.log("space created: ", createdSpace)
-      refreshData();
   
     } catch (err) {
-      console.error("Error:", err);
-      alert("An error occured!");
       toast({
         title: "Error",
-        description: "An error occured"
+        description: err.message || "An error occurred while creating the space",
+        variant: "destructive"
       });
     } finally {
+      refreshData();
       resetForms();
       onClose();
-      setLoading(false);
+      setIsCreating(false);
     }
   };
 
@@ -220,12 +213,6 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
           <TabsContent value="agent" className="space-y-4">
             <div>
               <Label htmlFor="agent-name">Name *</Label>
-              {/*<Input
-                id="agent-name"
-                value={agentForm.agent_name}
-                onChange={(e) => setAgentForm(prev => ({ ...prev, agent_name: e.target.value }))}
-                placeholder="Enter agent name"
-              />*/}
               <Input
                 id="agent-name"
                 value={agentForm.agent_name}
@@ -267,8 +254,8 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
               />
             </div>
             
-            <Button onClick={handleCreateAgent} className="w-full">
-              Create Agent
+            <Button onClick={handleCreateAgent} disabled={isCreating} className="w-full">
+              {isCreating ? 'Creating...' : 'Create Agent'}
             </Button>
           </TabsContent>
 
@@ -342,8 +329,8 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
               </div>
             </div>
 
-            <Button onClick={handleCreateContext} className="w-full">
-              Create Context
+            <Button onClick={handleCreateContext} disabled={isCreating} className="w-full">
+              {isCreating ? 'Creating...' : 'Create Context'}
             </Button>
           </TabsContent>
 
@@ -372,8 +359,8 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
                 placeholder="Enter space capacity"
               />
             </div>
-            <Button onClick={handleCreateSpace} className="w-full">
-              Create Space
+            <Button onClick={handleCreateSpace} disabled={isCreating} className="w-full">
+              {isCreating ? 'Creating...' : 'Create Space'}
             </Button>
           </TabsContent>
         </Tabs>
