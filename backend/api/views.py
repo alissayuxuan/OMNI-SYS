@@ -64,7 +64,7 @@ class AgentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = AgentFilter
-    ordering_fields = ['name', 'access_level', 'created_at']
+    ordering_fields = ['name', 'created_at']
     ordering = ['-created_at']  # Default ordering
     search_fields = ['name']  # Fields for ?search= parameter
     pagination_class = StandardResultsSetPagination

@@ -12,7 +12,7 @@ class OMNISysObject(models.Model):
         abstract = True
 
 class Agent(OMNISysObject):
-    access_level = models.IntegerField(default=0)
+    pass
 
 class Space(OMNISysObject):
     capacity = models.PositiveIntegerField()
@@ -23,5 +23,6 @@ class Context(OMNISysObject):
     agents = models.ManyToManyField(Agent, related_name='contexts')
 
 class Relationship(models.Model):
-    doctor = models.ForeignKey(Agent, on_delete=models.CASCADE, related_name='patients')
-    patient = models.ForeignKey(Agent, on_delete=models.CASCADE, related_name='doctors')
+    agent_from = models.ForeignKey(Agent, on_delete=models.SET_NULL, null=True, related_name='relationships_from')
+    agent_to = models.ForeignKey(Agent, on_delete=models.SET_NULL, null=True, related_name='relationships_to')
+    description = models.CharField(max_length=100)

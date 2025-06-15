@@ -71,7 +71,7 @@ class RegisterUserSerializer(serializers.Serializer):
         
         # Extract profile-specific fields
         if role == 'admin':
-            admin_fields = {k: validated_data.pop(k) for k in ['first_name', 'last_name', 'email', 'access_level'] if k in validated_data}
+            admin_fields = {k: validated_data.pop(k) for k in ['first_name', 'last_name', 'email'] if k in validated_data}
         else:
             agent_name = validated_data.pop('agent_name')
 

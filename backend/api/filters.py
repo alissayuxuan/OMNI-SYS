@@ -3,25 +3,12 @@ from .models import Agent, Space, Context
 
 
 class AgentFilter(django_filters.FilterSet):
-    # Exact match
-    access_level = django_filters.NumberFilter()
-
-    # Range filters
-    min_access_level = django_filters.NumberFilter(field_name='access_level', lookup_expr='gte')
-    max_access_level = django_filters.NumberFilter(field_name='access_level', lookup_expr='lte')
-
     # Text search (case-insensitive)
     name = django_filters.CharFilter(lookup_expr='icontains')
 
-    # Multiple choice filter
-    access_levels = django_filters.MultipleChoiceFilter(
-        field_name='access_level',
-        choices=[(i, i) for i in range(10)]
-    )
-
     class Meta:
         model = Agent
-        fields = ['access_level', 'name']
+        fields = ['name']
 
 
 class SpaceFilter(django_filters.FilterSet):

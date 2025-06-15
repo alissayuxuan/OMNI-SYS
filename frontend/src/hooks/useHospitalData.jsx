@@ -56,7 +56,6 @@ export const useHospitalData = (filterByCurrentUser = false) => {
           type: 'agent',
           properties: {
             username: `agent_${agent.id}`,
-            access_level: agent.access_level
           },
           createdAt: agent.created_at,
         })),
@@ -242,7 +241,6 @@ export const useHospitalData = (filterByCurrentUser = false) => {
       if (objectData.type === 'agent') {
         response = await api.post('/api/agents/', {
           name: objectData.name,
-          access_level: objectData.properties.access_level || 3
         });
 
         newObject = {
@@ -318,7 +316,6 @@ export const useHospitalData = (filterByCurrentUser = false) => {
       if (objectType === 'agent') {
         response = await api.patch(`/api/agents/${djangoId}/`, {
           name: updates.name,
-          access_level: updates.properties?.access_level
         });
       } else if (objectType === 'space') {
         response = await api.patch(`/api/spaces/${djangoId}/`, {
