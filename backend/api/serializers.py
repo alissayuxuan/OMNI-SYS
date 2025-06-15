@@ -51,26 +51,12 @@ class SpaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Space
         fields = ['id', 'name', 'capacity', 'created_at',
-                  'current_contexts', 'utilization_rate', 'is_available']
+                  'current_contexts', 'is_available']
         read_only_fields = ['id', 'created_at']
 
     def get_current_contexts(self, obj):
         """Get number of active contexts in this space"""
         return obj.context_set.filter(scheduled__gte=timezone.now()).count()
-
-    def get_utilization_rate(self, obj):
-        """Calculate average utilization rate"""
-        contexts = obj.context_set.all()
-        if not contexts:
-            return 0.0
-
-        total_agents = sum(context.agents.count() for context in contexts)
-        total_possible = contexts.count() * obj.capacity
-
-        if total_possible == 0:
-            return 0.0
-
-        return round((total_agents / total_possible) * 100, 2)
 
     def get_is_available(self, obj):
         """Check if space has any availability now"""
@@ -78,7 +64,7 @@ class SpaceSerializer(serializers.ModelSerializer):
         now = timezone.now()
         current_contexts = obj.context_set.filter(
             scheduled__lte=now,
-            scheduled__gte=now - timedelta(hours=2)  # Assume 2-hour slots
+            scheduled__gte=now - timedelta(hours=1)  # Assume 1-hour slots
         )
 
         for context in current_contexts:
@@ -91,11 +77,6 @@ class SpaceSerializer(serializers.ModelSerializer):
         """Validate space name"""
         if len(value.strip()) < 3:
             raise serializers.ValidationError("Space name must be at least 3 characters long")
-
-        # Check for reserved names
-        reserved_names = ['admin', 'test', 'null', 'undefined']
-        if value.lower() in reserved_names:
-            raise serializers.ValidationError(f"'{value}' is a reserved name and cannot be used")
 
         # Ensure unique name (case-insensitive)
         if self.instance:
@@ -126,9 +107,19 @@ class SpaceSerializer(serializers.ModelSerializer):
             ).filter(agent_count__gt=value)
 
             if over_capacity_contexts.exists():
+                # Get the names of the over-capacity contexts
+                context_names = list(over_capacity_contexts.values_list('name', flat=True))
+
+                # Create a readable list of context names
+                if len(context_names) <= 3:
+                    names_str = ", ".join(context_names)
+                else:
+                    # Show first 3 and indicate there are more
+                    names_str = f"{', '.join(context_names[:3])}, and {len(context_names) - 3} more"
+
                 raise serializers.ValidationError(
                     f"Cannot reduce capacity to {value}. "
-                    f"{over_capacity_contexts.count()} contexts have more agents than this capacity."
+                    f"{over_capacity_contexts.count()} contexts have more agents than this capacity: {names_str}"
                 )
 
         return value
