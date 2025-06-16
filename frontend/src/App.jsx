@@ -18,7 +18,9 @@ import "@/index.css";
 const queryClient = new QueryClient();
 
 function Logout() {
+  return
   localStorage.clear();
+  queryClient.clear();
   return <Navigate to="/login" />;
 }
 

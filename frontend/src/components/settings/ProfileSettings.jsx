@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,6 +47,10 @@ export const ProfileSettings = () => {
   }, [profile]);
 
   const [localFormData, setLocalFormData] = useState({});
+
+  useEffect(() => {
+    setLocalFormData(formData);
+  }, [formData]);
 
   const updateMutation = useMutation({
     mutationFn: updateProfile,

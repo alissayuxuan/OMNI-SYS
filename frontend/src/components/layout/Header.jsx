@@ -1,16 +1,21 @@
 import { useContext } from "react";
 import { UserContext } from "@/components/auth/ProtectedRoute";
 import { useNavigate } from "react-router-dom"
+import { useQueryClient } from '@tanstack/react-query';
+
 
 import { Button } from '@/components/ui/button';
 import { LogOut, User } from 'lucide-react';
 
 export const Header = () => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient();
+
 
   const logout = () => {
     console.log("logout")
     localStorage.clear() //deletes access and refresh token
+    queryClient.clear();
     return navigate("/login")
   }
 
