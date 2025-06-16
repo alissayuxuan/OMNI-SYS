@@ -85,7 +85,9 @@ class AgentProfileUpdateSerializer(serializers.ModelSerializer):
             instance.user.username = username
             instance.user.save()
 
-        instance.agent_object.name = validated_data['name']  # optional fallback
+        #instance.agent_object.name = validated_data['name']  # optional fallback
+        instance.agent_object.name = validated_data.get('name', instance.agent_object.name)
+
         instance.agent_object.save()
         return instance
 
