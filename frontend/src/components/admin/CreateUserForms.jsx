@@ -1,23 +1,17 @@
 import { useState } from 'react';
-import { useHospitalData } from '@/hooks/useHospitalData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { X } from 'lucide-react';
 import { manageHospitalData } from '@/hooks/manageHospitalData'
 
 export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
   const {createAgent, createAdmin } = manageHospitalData();
   const { toast } = useToast();
 
-  //const [agents, setAgents] = useState([]);
-  const [isCreating, setIsCreating] = useState(false); // TODO
-
+  const [isCreating, setIsCreating] = useState(false);
 
   // Form states for different object types
   const [agentForm, setAgentForm] = useState({
@@ -46,14 +40,11 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
 
 
   /* Create Objects */
-
   const handleCreateAgent = async (e) => {
     setIsCreating(true);
     e.preventDefault();
     // TODO: name requirements check
-    console.log("handleCreateAgent")
     if (!agentForm.agent_name || !agentForm.username || !agentForm.password) {
-      console.log("agent_name: ", !agentForm.agent_name, "username: ", !agentForm.username, "password: ", !agentForm.password)
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -63,18 +54,20 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
     }
 
     try {
-      console.log("creating agent")
       const createdAgent = await createAgent(agentForm);
 
-      alert(`agent '${createdAgent.name}' created!`)
       toast({
         title: "Successful",
-        description: `Context '${createdAgent.name}' created.`,
+        description: `Agent was successfully created.`,
       });
       console.log("Context created:", createdAgent)
 
     } catch (error){
-      alert(error)
+      toast({
+        title: "Error",
+        description: "An error occured while creating the agent: " + error.response?.data,
+        variant: "destructive"
+      });
     } finally {
       setIsCreating(false)
       resetForms();
@@ -90,7 +83,6 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
     console.log("handleCreateAdmin")
     if (!adminForm.username || !adminForm.password || !adminForm.first_name || !adminForm.last_name || !adminForm.email) {
 
-      console.log("Error: Please fill in all required fields")
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -100,18 +92,18 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
     }
 
     try {
-      console.log("creating admin")
-      const createdAdmin = await createAdmin(adminForm);
+      await createAdmin(adminForm);
 
-      alert(`admin '${createdAdmin}' created!`)
       toast({
         title: "Successful",
-        description: `admin '${createdAdmin}' created.`,
+        description: `Admin was successfully created.`,
       });
-      console.log("admin created:", createdAdmin)
-
     } catch (error){
-      alert(error)
+      toast({
+        title: "Error",
+        description: "An error occured while creating the admin: " + error.message,
+        variant: "destructive"
+      });
     } finally {
       resetForms();
       onClose();
@@ -234,7 +226,6 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
               {nameError && <p className="text-red-500 text-sm">{nameError}</p>}
             </div>
             <div>
-              {/* TODO: generate password function */}
               <Label htmlFor="admin-email">E-Mail *</Label>
               <Input
                 id="admin-email"
