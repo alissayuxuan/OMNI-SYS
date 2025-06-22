@@ -21,19 +21,40 @@ export const ObjectManagement = () => {
   const [editingObject, setEditingObject] = useState(null);
   const [filterType, setFilterType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAll, setShowAll] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, object: null, type: null });
 
-  const { getAgents, getContexts, getSpaces, deleteAgent, deleteContext, deleteSpace } = manageHospitalData();
+  const { getAgents, getContexts, getSpaces, getAllAgents, getAllContexts, getAllSpaces, deleteAgent, deleteContext, deleteSpace, archive, unarchive } = manageHospitalData();
 
-  const { data: agentsRes = { results: [] }, isLoading: loadingAgents } = useQuery({queryKey: ['agents'], queryFn: getAgents});
-  const { data: contextsRes = { results: [] }, isLoading: loadingContexts } = useQuery({queryKey: ['contexts'], queryFn: getContexts});
-  const { data: spacesRes = { results: [] }, isLoading: loadingSpaces } = useQuery({queryKey: ['spaces'], queryFn: getSpaces});
+  //const { data: agentsRes = { results: [] }, isLoading: loadingAgents } = useQuery({queryKey: ['agents'], queryFn: getAgents});
+  //const { data: contextsRes = { results: [] }, isLoading: loadingContexts } = useQuery({queryKey: ['contexts'], queryFn: getContexts});
+  //const { data: spacesRes = { results: [] }, isLoading: loadingSpaces } = useQuery({queryKey: ['spaces'], queryFn: getSpaces});
+
+  const { data: agentsRes = { results: [] }, isLoading: loadingAgents } = useQuery({
+    queryKey: ['agents', showAll],
+    queryFn: () => (showAll ? getAllAgents() : getAgents()),
+  //queryFn: showAll ? getAllAgents : getAgents
+  });    
+
+  const { data: contextsRes = { results: [] }, isLoading: loadingContexts } = useQuery({
+    queryKey: ['contexts', showAll],
+    queryFn: () => (showAll ? getAllContexts() : getContexts()),
+    //queryFn: showAll ? getAllContexts : getContexts
+  });
+  
+  const { data: spacesRes = { results: [] }, isLoading: loadingSpaces } = useQuery({
+    queryKey: ['spaces', showAll],
+    queryFn: () => (showAll ? getAllSpaces() : getSpaces()),
+    //queryFn: showAll ? getAllSpaces : getSpaces
+  });
+
 
   const agents = useMemo(() => agentsRes.results.map(agent => ({
     id: agent.id,
     name: agent.name,
     type: "agent",
     createdAt: agent.created_at,
+    archived: agent.archived,
   })), [agentsRes]);
 
   const contexts = useMemo(() => contextsRes.results.map(context => ({
@@ -44,6 +65,7 @@ export const ObjectManagement = () => {
     time: context.time,
     spaceId: context.space_id,
     participantIds: context.agent_ids,
+    archived: context.archived,
   })), [contextsRes]);
 
   const spaces = useMemo(() => spacesRes.results.map(space => ({
@@ -52,6 +74,7 @@ export const ObjectManagement = () => {
     type: "space",
     createdAt: space.created_at,
     capacity: space.capacity,
+    archived: space.archived,
   })), [spacesRes]);
 
   const allObjects = [...agents, ...contexts, ...spaces];
@@ -62,7 +85,7 @@ export const ObjectManagement = () => {
       else if (object.type === "context") await deleteContext(object.id);
       else if (object.type === "space") await deleteSpace(object.id);
 
-      toast({ title: "Success", description: "Object deleted successfully" });
+      toast({ title: "Success", description: "Object successfully deleted" });
 
       queryClient.invalidateQueries({queryKey: ['agents']});
       queryClient.invalidateQueries({queryKey: ['contexts']});
@@ -78,9 +101,46 @@ export const ObjectManagement = () => {
     setIsEditDialogOpen(true);
   };
 
+  /*
   const handleArchiveObject = async (object) => {
-    toast({ title: "Archived", description: `Object '${object.name}' archived (not implemented)` });
+    try {
+      if (object.type === "agent") await archive("agents", object.id);
+      else if (object.type === "context") await archive("contexts", object.id);
+      else if (object.type === "space") await archive("spaces", object.id);
+
+      toast({ title: "Success", description: "Object successfully archived" });
+
+      queryClient.invalidateQueries({queryKey: ['agents']});
+      queryClient.invalidateQueries({queryKey: ['contexts']});
+      queryClient.invalidateQueries({queryKey: ['spaces']});
+    } catch (err) {
+      console.error("Error:", err);
+      toast({ title: "Error", description: err.message, variant: 'destructive'  });
+    }
+  };*/
+
+  const handleArchiveObject = async (object) => {
+    try {
+      if (object.archived) {
+        await unarchive(object.type + "s", object.id);
+      } else {
+        await archive(object.type + "s", object.id);
+      }
+  
+      toast({
+        title: "Success",
+        description: `Object successfully ${object.archived ? 'unarchived' : 'archived'}`
+      });
+  
+      queryClient.invalidateQueries({ queryKey: ['agents'] });
+      queryClient.invalidateQueries({ queryKey: ['contexts'] });
+      queryClient.invalidateQueries({ queryKey: ['spaces'] });
+    } catch (err) {
+      console.error("Error:", err);
+      toast({ title: "Error", description: err.message, variant: 'destructive' });
+    }
   };
+  
 
   const handleConfirm = async () => {
     if (confirmDialog.type === 'delete') await handleDeleteObject(confirmDialog.object);
@@ -174,9 +234,14 @@ export const ObjectManagement = () => {
                       <Button variant="outline" size="sm" onClick={() => handleEditObject(object)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => setConfirmDialog({ open: true, object, type: 'archive' })}>
+                      {/*<Button variant="outline" size="sm" onClick={() => setConfirmDialog({ open: true, object, type: 'archive' })}>
                         <Archive className="h-4 w-4" />
+                      </Button>*/}
+                      <Button variant="outline" size="sm" onClick={() => setConfirmDialog({ open: true, object, type: 'archive' })}
+                      >
+                        {object.archived ? <Archive className="h-4 w-4 text-yellow-600" /> : <Archive className="h-4 w-4" />}
                       </Button>
+
                       <Button variant="destructive" size="sm" onClick={() => setConfirmDialog({ open: true, object, type: 'delete' })}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -186,6 +251,11 @@ export const ObjectManagement = () => {
               ))}
             </TableBody>
           </Table>
+          <div className="mt-6 text-center">
+            <Button onClick={() => setShowAll(prev => !prev)} variant="ghost">
+              {showAll ? "Show relevant objects" : "Show all objects"}
+            </Button>
+          </div>
 
           <CreateObjectForms 
             isOpen={isCreateDialogOpen}

@@ -77,7 +77,7 @@ class AgentViewSet(viewsets.ModelViewSet):
         return queryset.order_by('-created_at')
 
     @action(detail=False, methods=['get'])
-    def get_queryset_all(self):
+    def get_queryset_all(self, request):
         """Return all agents, optionally filtered."""
         queryset = Agent.objects.filter(context__space__owner=request.user)
         serializer = self.get_serializer(queryset, many=True)
@@ -178,7 +178,7 @@ class SpaceViewSet(ArchiveMixin, viewsets.ModelViewSet):
         return queryset.order_by('-created_at')
 
     @action(detail=False, methods=['get'])
-    def get_queryset_all(self):
+    def get_queryset_all(self, request):
         """Return all spaces, optionally filtered."""
         queryset = Space.objects.filter(owner=request.user)
         serializer = self.get_serializer(queryset, many=True)
@@ -304,7 +304,7 @@ class ContextViewSet(ArchiveMixin, viewsets.ModelViewSet):
         return queryset.order_by('scheduled')
 
     @action(detail=False, methods=['get'])
-    def get_queryset_all(self):
+    def get_queryset_all(self, request):
         """Return all contexts, optionally filtered."""
         queryset = Context.objects.filter(space__owner=request.user)
         serializer = self.get_serializer(queryset, many=True)

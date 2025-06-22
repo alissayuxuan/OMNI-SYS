@@ -48,10 +48,10 @@ export const manageHospitalData = () => {
       });
       return response.data;
     } catch (error) {
-    const message = error.response?.data?.detail || "Error fetching all agents";
-    throw new Error(message);
-  }
-};
+        const message = error.response?.data?.detail || "Error fetching all agents";
+        throw new Error(message);
+    }
+  };
 
   // get Contexts
   const getContexts = async (filters = {}) => {
@@ -76,11 +76,11 @@ const getAllContexts = async (filters = {}) => {
     });
     return response.data; // enthält z. B. { results: [...], count: ..., next: ..., previous: ... }
   } catch (error) {
-    const message = error.response?.data?.detail || "Error fetching all contexts";
-    console.error("Error fetching all contexts:", message);
-    throw new Error(message);
-  }
-};
+      const message = error.response?.data?.detail || "Error fetching all contexts";
+      console.error("Error fetching all contexts:", message);
+      throw new Error(message);
+    }
+  };
   // get Spaces
   const getSpaces = async (filters = {}) => {
     try {
