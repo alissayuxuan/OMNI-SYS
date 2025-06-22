@@ -361,6 +361,7 @@ export const manageHospitalData = () => {
   const getProfile = async () => {
     try {
       const res = await api.get(`api/auth/profile/`);
+      console.log("Profile fetched successfully:", res.data);
       return res.data;
     } catch (error) {
       throw new Error(error.response?.data?.error || "Failed to fetch agent profile");
