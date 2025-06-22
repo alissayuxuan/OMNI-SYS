@@ -134,6 +134,18 @@ export const manageHospitalData = () => {
     }
   };
 
+  // Get Relationships
+  const getRelationships = async (params = {}) => {
+    try {
+      const response = await api.get('api/relationships/', { params });
+      console.log("getRelationships response: ", response.data)
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching relationships:', error);
+      throw error;
+    }
+  };
+  
   /* Create Objects */
 
   // Create User & Agent
@@ -187,15 +199,16 @@ export const manageHospitalData = () => {
   // Create Relationship
   const createRelationship = async (payload) => {
     console.log("createRelationship - ", payload)
-    return;
     try {
-      const response = await api.post("api/relationships/", payload);
-      return response.data; 
+      const response = await api.post('api/relationships/', payload);
+      return response.data;
     } catch (error) {
-      const message = error.response?.data?.message || "Error occured when creating the Relationship.";
-      throw new Error(message); 
+      console.error('Error creating relationship:', error);
+      console.log('Backend said:', error.response?.data);  // 👈 THIS LINE IS CRUCIAL
+      throw error;
     }
-  }
+  };
+
 
 
   {/* Delete Objects*/}
@@ -213,7 +226,6 @@ export const manageHospitalData = () => {
     }
   };
 
-  // TODO: Delete Context (nicht in api call text??)
   const deleteContext = async (contextId) => {
     try {
       const response = await api.delete(`/api/contexts/${contextId}/`);
@@ -226,7 +238,6 @@ export const manageHospitalData = () => {
     }
   };
 
-  // TODO: Delete Space (nicht in api call text??)
   const deleteSpace = async (spaceId) => {
     try {
       const response = await api.delete(`/api/spaces/${spaceId}/`);
@@ -236,6 +247,17 @@ export const manageHospitalData = () => {
       console.error("Error deleting space:", error);
       const message = error.response?.data?.message || "Error occured when deleting the space.";
       throw new Error(message)
+    }
+  };
+
+  // Delete Relationship
+  const deleteRelationship = async (relationshipId) => {
+    try {
+      const response = await api.delete(`api/relationships/${relationshipId}/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting relationship:', error);
+      throw error;
     }
   };
   
@@ -333,6 +355,17 @@ export const manageHospitalData = () => {
     }
   };
 
+  // Update Relationship
+  const updateRelationship = async (relationshipId, updatedData) => {
+    try {
+      const response = await api.patch(`/relationships/${relationshipId}/`, updatedData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating relationship:', error);
+      throw error;
+    }
+  };
+
   // Update a user by ID
  const updateUser = async (userId, payload) => {
     try {
@@ -368,6 +401,7 @@ export const manageHospitalData = () => {
   const getProfile = async () => {
     try {
       const res = await api.get(`api/auth/profile/`);
+      console.log("Profile fetched successfully:", res.data);
       return res.data;
     } catch (error) {
       throw new Error(error.response?.data?.detail || "Failed to fetch agent profile");
@@ -457,6 +491,7 @@ export const manageHospitalData = () => {
     getAgentProfile,
     getAdminProfiles,
     getAdminProfile,
+    getRelationships,
     createAgent,
     createAdmin,
     createContext,
@@ -467,13 +502,15 @@ export const manageHospitalData = () => {
     deleteSpace,
     deleteAgentProfile,
     deleteAdminProfile,
+    deleteRelationship,
     updateAgent,
-    archive,
-    unarchive,
     updateContext,
     updateSpace,
     updateProfile,
-    changePassword
+    updateRelationship,
+    changePassword,
+    archive,
+    unarchive,
   };
 }
 
