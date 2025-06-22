@@ -96,7 +96,7 @@ const getAllContexts = async (filters = {}) => {
     }
   };
 
-  const getAllSpaces = async () => {
+  const getAllSpaces = async (filters = {}) => {
   try {
     const response = await api.get("/api/spaces/get_queryset_all/", {
       params: filters

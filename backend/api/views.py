@@ -471,36 +471,47 @@ class RelationshipViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Filter relationships by doctor or patient"""
+        """Filter relationships by agent_from or agent_to"""
         queryset = Relationship.objects.all()
 
-        doctor_id = self.request.query_params.get('doctor', None)
-        if doctor_id is not None:
-            queryset = queryset.filter(doctor_id=doctor_id)
-            logger.debug(f"Filtering relationships by doctor_id={doctor_id}")
+        agent_from_id = self.request.query_params.get('agent_from', None)
+        if agent_from_id is not None:
+            queryset = queryset.filter(agent_from_id=agent_from_id)
+            logger.debug(f"Filtering relationships by agent_from_id={agent_from_id}")
 
-        patient_id = self.request.query_params.get('patient', None)
-        if patient_id is not None:
-            queryset = queryset.filter(patient_id=patient_id)
-            logger.debug(f"Filtering relationships by patient_id={patient_id}")
-
+        agent_to_id = self.request.query_params.get('agent_to', None)
+        if agent_to_id is not None:
+            queryset = queryset.filter(agent_to_id=agent_to_id)
+            logger.debug(f"Filtering relationships by agent_to_id={agent_to_id}")
         return queryset
 
     def create(self, request, *args, **kwargs):
         try:
-            doctor_id = request.data.get('doctor')
-            patient_id = request.data.get('patient')
-            logger.info(
-                f"User {request.user.username} creating relationship: doctor ID {doctor_id} -> patient ID {patient_id}")
+            agent_from_id = request.data.get('agent_from')
+            agent_to_id = request.data.get('agent_to')
+            description = request.data.get('description', '')
 
-            # Check if relationship already exists
+            logger.info(
+                f"User {request.user.username} creating relationship: agent {agent_from_id} -> agent {agent_to_id} ({description})")
+
+            # Check if relationship already exists (same direction)
             existing = Relationship.objects.filter(
-                doctor_id=doctor_id,
-                patient_id=patient_id
+                agent_from_id=agent_from_id,
+                agent_to_id=agent_to_id
             ).exists()
 
             if existing:
-                logger.warning(f"Relationship already exists between doctor {doctor_id} and patient {patient_id}")
+                logger.warning(f"Relationship already exists from agent {agent_from_id} to agent {agent_to_id}")
+                return Response({
+                    'error': f'Relationship already exists from agent {agent_from_id} to agent {agent_to_id}'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Prevent self-referential relationships
+            if agent_from_id == agent_to_id:
+                logger.warning(f"Attempted to create self-referential relationship for agent {agent_from_id}")
+                return Response({
+                    'error': 'An agent cannot have a relationship with itself'
+                }, status=status.HTTP_400_BAD_REQUEST)
 
             response = super().create(request, *args, **kwargs)
             logger.info(f"Successfully created relationship ID: {response.data.get('id')}")
@@ -514,19 +525,37 @@ class RelationshipViewSet(viewsets.ModelViewSet):
         try:
             partial = kwargs.pop('partial', False)
             instance = self.get_object()
-            old_doctor_id = instance.doctor_id
-            old_patient_id = instance.patient_id
+            old_agent_from_id = instance.agent_from_id
+            old_agent_to_id = instance.agent_to_id
+            old_description = instance.description
 
             logger.info(
                 f"User {request.user.username} updating relationship ID: {instance.id} with data: {request.data} (partial={partial})")
+
+            # Validate against self-referential relationship if agents are being updated
+            new_agent_from_id = request.data.get('agent_from', old_agent_from_id)
+            new_agent_to_id = request.data.get('agent_to', old_agent_to_id)
+
+            if new_agent_from_id == new_agent_to_id:
+                logger.warning(f"Attempted to update relationship {instance.id} to be self-referential")
+                return Response({
+                    'error': 'An agent cannot have a relationship with itself'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
             response = super().update(request, *args, **kwargs)
 
-            new_doctor_id = response.data.get('doctor')
-            new_patient_id = response.data.get('patient')
+            new_agent_from_id = response.data.get('agent_from')
+            new_agent_to_id = response.data.get('agent_to')
+            new_description = response.data.get('description')
 
-            if old_doctor_id != new_doctor_id or old_patient_id != new_patient_id:
+            # Log significant changes
+            if old_agent_from_id != new_agent_from_id or old_agent_to_id != new_agent_to_id:
                 logger.warning(
-                    f"Relationship ID: {instance.id} changed from doctor {old_doctor_id}->patient {old_patient_id} to doctor {new_doctor_id}->patient {new_patient_id}")
+                    f"Relationship ID: {instance.id} changed from agent {old_agent_from_id}->agent {old_agent_to_id} to agent {new_agent_from_id}->agent {new_agent_to_id}")
+
+            if old_description != new_description:
+                logger.info(
+                    f"Relationship ID: {instance.id} description changed from '{old_description}' to '{new_description}'")
 
             logger.info(f"Successfully updated relationship ID: {instance.id}")
             return response
@@ -555,8 +584,15 @@ class RelationshipViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         try:
             obj = self.get_object()
+            agent_from_name = obj.agent_from.name if obj.agent_from else "Unknown"
+            agent_to_name = obj.agent_to.name if obj.agent_to else "Unknown"
+
             logger.warning(
-                f"User {request.user.username} deleting relationship ID: {obj.id} between doctor {obj.doctor.name} (ID: {obj.doctor_id}) and patient {obj.patient.name} (ID: {obj.patient_id})")
+                f"User {request.user.username} deleting relationship ID: {obj.id} "
+                f"from agent {agent_from_name} (ID: {obj.agent_from_id}) "
+                f"to agent {agent_to_name} (ID: {obj.agent_to_id}) "
+                f"- Description: '{obj.description}'")
+
             response = super().destroy(request, *args, **kwargs)
             logger.warning(f"Successfully deleted relationship ID: {obj.id}")
             return response
