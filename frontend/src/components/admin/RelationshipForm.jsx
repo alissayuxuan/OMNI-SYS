@@ -11,26 +11,26 @@ export const RelationshipForm = ({ isOpen, onClose, agents, refreshData, mode = 
   const { createRelationship, updateRelationship } = manageHospitalData();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    agent1: '',
-    agent2: '',
+    agent_from: '',
+    agent_to: '',
     description: '',
   });
 
   useEffect(() => {
     if (mode === 'edit' && initialData) {
       setFormData({
-        agent1: initialData.agent1 || '',
-        agent2: initialData.agent2 || '',
+        agent_from: initialData.agent_from || '',
+        agent_to: initialData.agent_to || '',
         description: initialData.description || '',
       });
     }
   }, [mode, initialData]);
 
   const handleSave = async () => {
-    if (!formData.agent1 || !formData.agent2 || !formData.description|| formData.agent1 === formData.agent2) {
+    if (!formData.agent_from || !formData.agent_to || !formData.description|| formData.agent_from === formData.agent_to) {
       toast({
         title: 'Error',
-        description: 'Please select two different agents.',
+        description: 'Please fill in all required fields and select two different agents.',
         variant: 'destructive',
       });
       return;
@@ -39,15 +39,15 @@ export const RelationshipForm = ({ isOpen, onClose, agents, refreshData, mode = 
     try {
       if (mode === 'create') {
         await createRelationship({
-          agent1: formData.agent1,
-          agent2: formData.agent2,
+          agent_from: formData.agent_from,
+          agent_to: formData.agent_to,
           description: formData.description,
         });
         toast({ title: 'Created', description: 'Relationship created successfully.' });
       } else {
         await updateRelationship(initialData.id, {
-          agent1: formData.agent1,
-          agent2: formData.agent2,
+          agent_from: formData.agent_from,
+          agent_to: formData.agent_to,
           description: formData.description,
         });
         toast({ title: 'Updated', description: 'Relationship updated successfully.' });
@@ -75,10 +75,10 @@ export const RelationshipForm = ({ isOpen, onClose, agents, refreshData, mode = 
 
         <div className="space-y-4">
           <div>
-            <Label>Agent 1</Label>
+            <Label>Agent From</Label>
             <Select
-              value={formData.agent1}
-              onValueChange={(value) => setFormData((prev) => ({ ...prev, agent1: value }))}
+              value={formData.agent_from}
+              onValueChange={(value) => setFormData((prev) => ({ ...prev, agent_from: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select first agent" />
@@ -92,10 +92,10 @@ export const RelationshipForm = ({ isOpen, onClose, agents, refreshData, mode = 
           </div>
 
           <div>
-            <Label>Agent 2</Label>
+            <Label>Agent To</Label>
             <Select
-              value={formData.agent2}
-              onValueChange={(value) => setFormData((prev) => ({ ...prev, agent2: value }))}
+              value={formData.agent_to}
+              onValueChange={(value) => setFormData((prev) => ({ ...prev, agent_to: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select second agent" />

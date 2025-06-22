@@ -232,7 +232,7 @@ class ContextSerializer(serializers.ModelSerializer):
 class RelationshipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Relationship
-        fields = ['id', 'name', 'created_at']
+        fields = ['id', 'agent_from', 'agent_to', 'description', 'created_at'] # removed 'name' 
         read_only_fields = ['id', 'created_at']
 
 
