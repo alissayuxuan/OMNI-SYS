@@ -23,6 +23,6 @@ class Context(OMNISysObject):
     agents = models.ManyToManyField(Agent, related_name='contexts')
 
 class Relationship(models.Model):
-    agent_from = models.ForeignKey(Agent, on_delete=models.SET_NULL, null=True, related_name='relationships_from')
-    agent_to = models.ForeignKey(Agent, on_delete=models.SET_NULL, null=True, related_name='relationships_to')
+    agent_from = models.ForeignKey(Agent, on_delete=models.CASCADE, null=True, related_name='relationships_from')
+    agent_to = models.ForeignKey(Agent, on_delete=models.CASCADE, null=True, related_name='relationships_to')
     description = models.CharField(max_length=100, null=True)
