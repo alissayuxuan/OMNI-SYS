@@ -43,35 +43,11 @@ class AgentSerializer(serializers.ModelSerializer):
 
 
 class SpaceSerializer(serializers.ModelSerializer):
-    # Add computed fields
-    current_contexts = serializers.SerializerMethodField()
-    utilization_rate = serializers.SerializerMethodField()
-    is_available = serializers.SerializerMethodField()
 
     class Meta:
         model = Space
-        fields = ['id', 'name', 'capacity', 'created_at',
-                  'current_contexts', 'is_available']
+        fields = ['id', 'name', 'capacity', 'created_at']
         read_only_fields = ['id', 'created_at']
-
-    def get_current_contexts(self, obj):
-        """Get number of active contexts in this space"""
-        return obj.context_set.filter(scheduled__gte=timezone.now()).count()
-
-    def get_is_available(self, obj):
-        """Check if space has any availability now"""
-        # Check if there's a context scheduled for now that's at capacity
-        now = timezone.now()
-        current_contexts = obj.context_set.filter(
-            scheduled__lte=now,
-            scheduled__gte=now - timedelta(hours=1)  # Assume 1-hour slots
-        )
-
-        for context in current_contexts:
-            if context.agents.count() >= obj.capacity:
-                return False
-
-        return True
 
     def validate_name(self, value):
         """Validate space name"""
