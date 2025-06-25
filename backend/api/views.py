@@ -55,7 +55,7 @@ def handle_api_error(exception, default_message="An error occurred"):
     }, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AgentViewSet(viewsets.ModelViewSet):
+class AgentViewSet(ArchiveMixin, viewsets.ModelViewSet):
     """
     ViewSet for Agent CRUD operations
     """
