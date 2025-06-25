@@ -33,10 +33,9 @@ export const Header = () => {
 
 
   const logout = () => {
-    console.log("logout")
     localStorage.clear() //deletes access and refresh token
     queryClient.clear();
-    return navigate("/login")
+    return navigate("/")
   }
 
 

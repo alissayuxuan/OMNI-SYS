@@ -24,7 +24,7 @@ export const ObjectManagement = () => {
   const [showAll, setShowAll] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, object: null, type: null });
 
-  const { getAgents, getContexts, getSpaces, /*getAllAgents, getAllContexts, getAllSpaces,*/ deleteAgent, deleteContext, deleteSpace, archive, unarchive } = manageHospitalData();
+  const { getAgents, getContexts, getSpaces, deleteAgent, deleteContext, deleteSpace, archive, unarchive } = manageHospitalData();
 
   const { data: agentsRes = { results: [] }, isLoading: loadingAgents } = useQuery({
     queryKey: ['agents', showAll],
@@ -84,7 +84,6 @@ export const ObjectManagement = () => {
       queryClient.invalidateQueries({queryKey: ['contexts']});
       queryClient.invalidateQueries({queryKey: ['spaces']});
     } catch (err) {
-      console.error("Error:", err);
       toast({ title: "Error", description: err.message, variant: 'destructive'  });
     }
   };
@@ -111,7 +110,6 @@ export const ObjectManagement = () => {
       queryClient.invalidateQueries({ queryKey: ['contexts'] });
       queryClient.invalidateQueries({ queryKey: ['spaces'] });
     } catch (err) {
-      console.error("Error:", err);
       toast({ title: "Error", description: err.message, variant: 'destructive' });
     }
   };
@@ -119,7 +117,8 @@ export const ObjectManagement = () => {
 
   const handleConfirm = async () => {
     if (confirmDialog.type === 'delete') await handleDeleteObject(confirmDialog.object);
-    else if (confirmDialog.type === 'archive') await handleArchiveObject(confirmDialog.object);
+    else if (confirmDialog.type === 'archive' || confirmDialog.type === 'unarchive') await handleArchiveObject(confirmDialog.object);
+
     setConfirmDialog({ open: false, object: null, type: null });
   };
 
@@ -212,10 +211,7 @@ export const ObjectManagement = () => {
                       <Button variant="outline" size="sm" onClick={() => handleEditObject(object)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      {/*<Button variant="outline" size="sm" onClick={() => setConfirmDialog({ open: true, object, type: 'archive' })}>
-                        <Archive className="h-4 w-4" />
-                      </Button>*/}
-                      <Button variant="outline" size="sm" onClick={() => setConfirmDialog({ open: true, object, type: 'archive' })}
+                      <Button variant="outline" size="sm" onClick={() => setConfirmDialog({ open: true, object, type: object.archived ? 'unarchive' : 'archive' })}
                       >
                         {object.archived ? <Archive className="h-4 w-4 text-yellow-600" /> : <Archive className="h-4 w-4" />}
                       </Button>
@@ -260,10 +256,10 @@ export const ObjectManagement = () => {
             spaces={spaces}
           />
 
-          <Dialog open={confirmDialog.open} onOpenChange={() => setConfirmDialog({ open: false, object: null, type: null })}>
+          <Dialog open={confirmDialog.open} onOpenChange={() => setConfirmDialog({ open: false, object: object, type: null })}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{confirmDialog.type === 'delete' ? 'Delete Object' : 'Archive Object'}</DialogTitle>
+                <DialogTitle>{confirmDialog.type === 'delete' ? 'Delete Object' : confirmDialog.type === 'archive' ? 'Archive Object' : 'Unarchive Object'}</DialogTitle>
               </DialogHeader>
               <DialogDescription>Are you sure you want to {confirmDialog.type} this object?</DialogDescription>
               <DialogFooter className="flex justify-end space-x-2 mt-4">

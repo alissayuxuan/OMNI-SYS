@@ -1,5 +1,4 @@
 import { useState } from 'react';
-//import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +16,6 @@ function LoginForm({route}) {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate()
-  //const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     setIsLoading(true);
@@ -26,7 +24,6 @@ function LoginForm({route}) {
     try {
         const payload = { username, password };
         const res = await api.post(route, payload)
-        console.log("res.data.role: ", res.data.role)
 
         if (res.status !== 200) {
             toast({
@@ -39,11 +36,9 @@ function LoginForm({route}) {
             localStorage.setItem(ACCESS_TOKEN, res.data.access);
             localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
             if (res.data.role === "admin") {
-              console.log("admin login")
               navigate("/admin-dashboard");
           } else {
               navigate("/agent-dashboard");
-              console.log("agent login")
           }
         }
 
@@ -51,7 +46,7 @@ function LoginForm({route}) {
     } catch (error){
         toast({
             title: 'Error',
-            description: 'An error occurred during login',
+            description: error.message,
             variant: 'destructive'
           });
     } finally {

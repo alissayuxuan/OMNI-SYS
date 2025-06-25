@@ -15,7 +15,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
   const {createAgent, createContext, createSpace } = manageHospitalData();
   const { toast } = useToast();
 
-  const [isCreating, setIsCreating] = useState(false); // TODO
+  const [isCreating, setIsCreating] = useState(false); 
   const [showPassword, setShowPassword] = useState(false);
 
   // Form states for different object types
@@ -53,9 +53,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
     setIsCreating(true);
     e.preventDefault();
     // TODO: name requirements check
-    console.log("handleCreateAgent")
     if (!agentForm.agent_name || !agentForm.username || !agentForm.password) {
-      console.log("agent_name: ", !agentForm.agent_name, "username: ", !agentForm.username, "password: ", !agentForm.password)
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -65,8 +63,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
     }
 
     try {
-      console.log("creating agent")
-      const createdAgent = await createAgent(agentForm);
+      await createAgent(agentForm);
 
       toast({
         title: "Successful",
@@ -90,9 +87,6 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
   const handleCreateContext = async (e) => {
     setIsCreating(true);
     e.preventDefault();
-    console.log("contextForm: ", contextForm)
-    console.log("spaceID: ", contextForm.spaceId)
-    console.log("participants: ", contextForm.participantIds)
     
     if (!contextForm.name || !contextForm.time || !contextForm.spaceId || !contextForm.participantIds) {
       toast({
@@ -105,7 +99,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
 
     try {  
       // Umwandlung datetime-local in ISO string mit 'Z'
-      const scheduled = new Date(contextForm.time).toISOString().split('.')[0] + 'Z';//new Date(contextForm.time).toISOString();
+      const scheduled = new Date(contextForm.time).toISOString().split('.')[0] + 'Z';
   
       const payload = {
         name: contextForm.name.trim(),
@@ -113,8 +107,6 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
         space_id: Number(contextForm.spaceId),
         agent_ids: contextForm.participantIds.map(id => Number(id)),
       };
-
-      console.log("payload: \n", payload)
   
       await createContext(payload);
 
@@ -137,7 +129,6 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
   };
 
   const handleCreateSpace = async(e) => {
-    console.log("handleCreateSpace")
     setIsCreating(true);
     e.preventDefault();
 

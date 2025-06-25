@@ -62,12 +62,11 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
         title: "Successful",
         description: `Agent was successfully created.`,
       });
-      console.log("Context created:", createdAgent)
 
     } catch (error){
       toast({
         title: "Error",
-        description: "An error occured while creating the agent: " + error.response?.data,
+        description: error.message,
         variant: "destructive"
       });
     } finally {
@@ -82,7 +81,6 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
     setIsCreating(true);
     e.preventDefault();
     // TODO: name requirements check
-    console.log("handleCreateAdmin")
     if (!adminForm.username || !adminForm.password || !adminForm.first_name || !adminForm.last_name || !adminForm.email) {
 
       toast({
@@ -103,7 +101,7 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
     } catch (error){
       toast({
         title: "Error",
-        description: "An error occured while creating the admin: " + error.message,
+        description: error.message,
         variant: "destructive"
       });
     } finally {
