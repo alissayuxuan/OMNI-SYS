@@ -41,18 +41,6 @@ export const manageHospitalData = () => {
     }
   };
 
-  const getAllAgents = async (filters = {}) => {
-    try {
-      const response = await api.get("/api/agents/get_queryset_all/", {
-        params: filters,
-      });
-      return response.data;
-    } catch (error) {
-        const message = error.response?.data?.detail || "Error fetching all agents";
-        throw new Error(message);
-    }
-  };
-
   // get Contexts
   const getContexts = async (filters = {}) => {
     try {
@@ -69,18 +57,6 @@ export const manageHospitalData = () => {
     }
   };
 
-const getAllContexts = async (filters = {}) => {
-  try {
-    const response = await api.get("/api/contexts/get_queryset_all/", {
-      params: filters,
-    });
-    return response.data; // enthält z. B. { results: [...], count: ..., next: ..., previous: ... }
-  } catch (error) {
-      const message = error.response?.data?.detail || "Error fetching all contexts";
-      console.error("Error fetching all contexts:", message);
-      throw new Error(message);
-    }
-  };
   // get Spaces
   const getSpaces = async (filters = {}) => {
     try {
@@ -95,18 +71,6 @@ const getAllContexts = async (filters = {}) => {
         throw new Error(message);
     }
   };
-
-  const getAllSpaces = async (filters = {}) => {
-  try {
-    const response = await api.get("/api/spaces/get_queryset_all/", {
-      params: filters
-    });
-    return response.data;
-  } catch (error) {
-    const message = error.response?.data?.detail || "Error fetching all spaces";
-    throw new Error(message);
-  }
-};
 
   // Get all users (optional: filter by role)
   const getUsers = async (role = null) => {

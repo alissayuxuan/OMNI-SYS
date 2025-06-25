@@ -23,7 +23,7 @@ class ArchiveMixin:
         def archive(self, request, pk=None):
             obj = self.get_object()
             if obj.is_archived:
-                return Response({'detail': f'{obj.__class__.__name__} already archived.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'status': f'{obj.__class__.__name__.lower()} already archived'})
             obj.is_archived = True
             obj.save()
             return Response({'status': f'{obj.__class__.__name__.lower()} archived'})
@@ -32,7 +32,7 @@ class ArchiveMixin:
         def unarchive(self, request, pk=None):
             obj = self.get_object()
             if not obj.is_archived:
-                return Response({'detail': f'{obj.__class__.__name__} is not archived.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'status': f'{obj.__class__.__name__.lower()} already unarchived'})
             obj.is_archived = False
             obj.save()
             return Response({'status': f'{obj.__class__.__name__.lower()} unarchived'})
@@ -76,16 +76,12 @@ class AgentViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(access_level=access_level)
         return queryset.order_by('-created_at')
 
-    @action(detail=False, methods=['get'])
-    def get_queryset_all(self, request):
-        """Return all agents, optionally filtered."""
-        queryset = Agent.objects.filter(context__space__owner=request.user)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
     def get_queryset(self):
-        """Return non-archived agents, optionally filtered."""
-        queryset = Agent.objects.filter(is_archived=False)
+        queryset = Agent.objects.all()
+        archived = self.request.query_params.get('archived', 'true').lower()
+        if archived != 'true':
+            queryset = queryset.filter(is_archived=False)
+        
         return self._filter_queryset(queryset)
 
     def create(self, request, *args, **kwargs):
@@ -177,16 +173,13 @@ class SpaceViewSet(ArchiveMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(capacity__gte=min_capacity)
         return queryset.order_by('-created_at')
 
-    @action(detail=False, methods=['get'])
-    def get_queryset_all(self, request):
-        """Return all spaces, optionally filtered."""
-        queryset = Space.objects.filter(owner=request.user)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
     def get_queryset(self):
-        """Return non-archived spaces, optionally filtered."""
-        queryset = Space.objects.filter(is_archived=False)
+        """Return spaces, optionally including archived ones, and optionally filtered."""
+        queryset = Space.objects.all()
+        archived = self.request.query_params.get("archived", "true").lower()
+        if archived != "true":
+            queryset = queryset.filter(is_archived=False)
+
         return self._filter_queryset(queryset)
 
     def create(self, request, *args, **kwargs):
@@ -303,16 +296,14 @@ class ContextViewSet(ArchiveMixin, viewsets.ModelViewSet):
 
         return queryset.order_by('scheduled')
 
-    @action(detail=False, methods=['get'])
-    def get_queryset_all(self, request):
-        """Return all contexts, optionally filtered."""
-        queryset = Context.objects.filter(space__owner=request.user)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
     def get_queryset(self):
-        """Return non-archived contexts, optionally filtered."""
-        queryset = Context.objects.filter(is_archived=False)
+        """Return non-archived contexts by default, optionally include archived ones."""
+        queryset = Context.objects.all()
+
+        archived = self.request.query_params.get("archived", "true").lower()
+        if archived != "true":
+            queryset = queryset.filter(is_archived=False)
+
         return self._filter_queryset(queryset)
 
     def create(self, request, *args, **kwargs):
