@@ -2,14 +2,11 @@ import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Users, Edit, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { manageHospitalData } from '@/hooks/manageHospitalData';
-import { CreateRelationshipForm } from './CreateRelationshipForm';
 import { RelationshipForm } from './RelationshipForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
@@ -53,7 +50,7 @@ export const RelationshipManagement = () => {
       toast({ title: "Deleted", description: "Relationship deleted successfully" });
       queryClient.invalidateQueries(['relationships']);
     } catch (err) {
-      toast({ title: "Error", description: "Failed to delete relationship" });
+      toast({ title: "Error", description: err.message });
     }
   };
 

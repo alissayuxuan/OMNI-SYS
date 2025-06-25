@@ -214,14 +214,6 @@ export const ProfileSettings = () => {
             <DialogDescription>Enter your current password and choose a new one</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {/*<div>
-              <Label>Current Password</Label>
-              <Input
-                type="password"
-                value={passwordForm.currentPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-              />
-            </div>*/}
             <div>
               <Label>Current Password</Label>
               <div className="relative w-full">
@@ -242,14 +234,6 @@ export const ProfileSettings = () => {
                 </button>
               </div>
             </div>
-            {/*<div>
-              <Label>New Password</Label>
-              <Input
-                type="password"
-                value={passwordForm.newPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-              />
-            </div>*/}
             <div>
               <Label>New Password</Label>
               <div className="relative w-full">
@@ -271,14 +255,6 @@ export const ProfileSettings = () => {
               </div>
             </div>
 
-            {/*<div>
-              <Label>Confirm New Password</Label>
-              <Input
-                type="password"
-                value={passwordForm.confirmPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-              />
-            </div>*/}
             <div>
             <Label>Confirm New Password</Label>
               <div className="relative w-full">

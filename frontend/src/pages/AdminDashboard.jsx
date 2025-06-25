@@ -6,13 +6,11 @@ import { ProfileSettings } from '@/components/settings/ProfileSettings';
 import { GraphVisualization } from '@/components/graph/GraphVisualization';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Database, Network, BarChart3, Building, CalendarDays} from 'lucide-react';
-
+import { Users, Database, Network, Building, CalendarDays} from 'lucide-react';
 import { RelationshipManagement } from '@/components/admin/RelationshipManagement';
 
 export const AdminDashboard = () => {
   const { objects, relationships } = useHospitalData(false);
-
 
   const stats = {
     totalObjects: objects.length,

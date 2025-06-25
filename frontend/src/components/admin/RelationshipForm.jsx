@@ -57,7 +57,7 @@ export const RelationshipForm = ({ isOpen, onClose, agents, refreshData, mode = 
     } catch (err) {
       toast({
         title: 'Error',
-        description: 'Failed to save relationship.',
+        description: err.message,
         variant: 'destructive',
       });
     }

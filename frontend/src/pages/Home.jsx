@@ -1,4 +1,4 @@
-import React from 'react';
+/*import React from 'react';
 import { useNavigate } from "react-router-dom"
 import "../styles/Home.css";
 
@@ -18,4 +18,4 @@ function Home () {
     )
 }
 
-export default Home
+export default Home*/

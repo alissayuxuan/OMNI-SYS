@@ -42,8 +42,7 @@ export const CreateRelationshipForm = ({ isOpen, onClose, agents, refreshData })
       refreshData();
       onClose();
     } catch (err) {
-      console.error(err);
-      toast({ title: "Error", description: "Failed to create relationship." });
+      toast({ title: "Error", description: err.message, variant: 'destructive' });
     }
   };
 
