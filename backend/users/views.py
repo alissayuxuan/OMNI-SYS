@@ -167,7 +167,8 @@ class UserProfileView(APIView):
             profile = AgentProfile.objects.get(user=user)
             serializer = AgentProfileSerializer(profile)
         else:
-            return Response({'error': 'Invalid role'}, status=400)
+            return Response({'detail': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(serializer.data)
 
     def put(self, request):
@@ -179,7 +180,7 @@ class UserProfileView(APIView):
             profile = AgentProfile.objects.get(user=user)
             serializer = AgentProfileUpdateSerializer(profile, data=request.data, partial=True)
         else:
-            return Response({'error': 'Invalid role'}, status=400)
+            return Response({'detail': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
 
         if serializer.is_valid():
             serializer.save()
@@ -196,26 +197,3 @@ class ChangePasswordView(APIView):
             serializer.save()
             return Response({'detail': 'Password updated successfully'})
         return Response(serializer.errors, status=400)
-
-"""    
-class GetUserProfileView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-
-        try:
-            if user.role == 'agent':
-                profile = AgentProfile.objects.get(user=user)
-                serializer = AgentProfileSerializer(profile)
-            elif user.role == 'admin':
-                profile = AdminProfile.objects.get(user=user)
-                serializer = AdminProfileSerializer(profile)
-            else:
-                return Response({'error': 'Unknown user role'}, status=400)
-
-            return Response(serializer.data)
-
-        except (AgentProfile.DoesNotExist, AdminProfile.DoesNotExist):
-            return Response({'error': 'Profile not found'}, status=404)
-"""

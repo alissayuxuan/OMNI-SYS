@@ -85,7 +85,6 @@ class AgentProfileUpdateSerializer(serializers.ModelSerializer):
             instance.user.username = username
             instance.user.save()
 
-        #instance.agent_object.name = validated_data['name']  # optional fallback
         instance.agent_object.name = validated_data.get('name', instance.agent_object.name)
 
         instance.agent_object.save()
@@ -113,51 +112,6 @@ class PasswordChangeSerializer(serializers.Serializer):
         user.save()
         return user
     
-"""
-User = get_user_model()
-
-class CustomUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'role']
-
-class AgentProfileSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer(read_only=True)
-
-    class Meta:
-        model = AgentProfile
-        fields = ['id', 'user', 'agent_object']
-
-class AdminProfileSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer(read_only=True)
-
-    class Meta:
-        model = AdminProfile
-        fields = ['id', 'user', 'first_name', 'last_name', 'email']
-"""
-"""
-class CustomUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ['id', 'username', 'role', 'date_joined']
-        read_only_fields = ['date_joined']
-
-
-class AdminProfileSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer()
-
-    class Meta:
-        model = AdminProfile
-        fields = '__all__'
-
-
-class AgentProfileSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer()
-
-    class Meta:
-        model = AgentProfile
-        fields = '__all__'
-"""
 
 class RegisterUserSerializer(serializers.Serializer):
     username = serializers.CharField()

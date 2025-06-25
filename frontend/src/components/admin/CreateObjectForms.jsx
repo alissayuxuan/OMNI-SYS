@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { X } from 'lucide-react';
+import { X, Eye, EyeOff } from 'lucide-react';
 import { manageHospitalData } from '@/hooks/manageHospitalData'
 
 export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces }) => {
@@ -16,7 +16,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
   const { toast } = useToast();
 
   const [isCreating, setIsCreating] = useState(false); // TODO
-
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form states for different object types
   const [agentForm, setAgentForm] = useState({
@@ -116,7 +116,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
 
       console.log("payload: \n", payload)
   
-      const createdContext = await createContext(payload);
+      await createContext(payload);
 
       toast({
         title: "Successful",
@@ -151,7 +151,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
     }
 
     try {
-      const createdSpace = await createSpace(spaceForm);
+      await createSpace(spaceForm);
 
       toast({
         title: "Successful",
@@ -243,17 +243,51 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
               />
             </div>
             <div>
-              {/* TODO: generate password function */}
               <Label htmlFor="agent-password">Password *</Label>
-              <Input
-                id="agent-password"
-                type="password"
-                value={agentForm.password}
-                onChange={(e) => setAgentForm(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="Enter password"
-              />
-            </div>
-            
+              <div className="flex items-center gap-2">
+                {/* Password input with eye icon */}
+                <div className="relative w-full">
+                  <Input
+                    id="agent-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={agentForm.password}
+                    onChange={(e) => setAgentForm(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="Enter or generate password"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                    tabIndex={-1} // avoid accidentally focusing
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                {/* Generate button */}
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+                    let generated = '';
+                    for (let i = 0; i < 15; i++) {
+                      generated += characters.charAt(Math.floor(Math.random() * characters.length));
+                    }
+                    setAgentForm(prev => ({ ...prev, password: generated }));
+                  }}
+                >
+                  Generate
+                </Button>
+              </div>
+
+              {/* Warning message */}
+              {agentForm.password && (
+                <p className="text-sm text-blue-600 mt-1">
+                  Please save the password securely, it will not be shown again.
+                </p>
+              )}
+            </div>            
             <Button onClick={handleCreateAgent} disabled={isCreating} className="w-full">
               {isCreating ? 'Creating...' : 'Create Agent'}
             </Button>

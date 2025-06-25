@@ -191,6 +191,7 @@ export const manageHospitalData = () => {
       const response = await api.post("api/spaces/", payload);
       return response.data; 
     } catch (error) {
+      throw error
       const message = error.response?.data?.message || "Error occured when creating the Space.";
       throw new Error(message); 
     }
