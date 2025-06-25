@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Lock, Settings, Loader2 } from 'lucide-react';
+import { Lock, Settings, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { manageHospitalData } from '@/hooks/manageHospitalData';
 
@@ -17,6 +17,9 @@ export const ProfileSettings = () => {
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile'],
@@ -211,29 +214,90 @@ export const ProfileSettings = () => {
             <DialogDescription>Enter your current password and choose a new one</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
+            {/*<div>
               <Label>Current Password</Label>
               <Input
                 type="password"
                 value={passwordForm.currentPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
               />
-            </div>
+            </div>*/}
             <div>
+              <Label>Current Password</Label>
+              <div className="relative w-full">
+                <Input
+                  type={showCurrentPassword ? 'text' : 'password'}
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                  placeholder="Enter your current password"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(prev => !prev)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                  tabIndex={-1} // avoid accidentally focusing
+                >
+                  {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            {/*<div>
               <Label>New Password</Label>
               <Input
                 type="password"
                 value={passwordForm.newPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
               />
-            </div>
+            </div>*/}
             <div>
+              <Label>New Password</Label>
+              <div className="relative w-full">
+                <Input
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                  placeholder="Enter your new password"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(prev => !prev)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                  tabIndex={-1} // avoid accidentally focusing
+                >
+                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {/*<div>
               <Label>Confirm New Password</Label>
               <Input
                 type="password"
                 value={passwordForm.confirmPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
               />
+            </div>*/}
+            <div>
+            <Label>Confirm New Password</Label>
+              <div className="relative w-full">
+                <Input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                  placeholder="Confirm your new password"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(prev => !prev)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                  tabIndex={-1} // avoid accidentally focusing
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
             <Button onClick={handleChangePassword} disabled={passwordSaving} className="w-full">
               {passwordSaving ? 'Updating...' : 'Update Password'}

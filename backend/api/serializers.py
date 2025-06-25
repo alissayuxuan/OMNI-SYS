@@ -45,13 +45,12 @@ class AgentSerializer(serializers.ModelSerializer):
 class SpaceSerializer(serializers.ModelSerializer):
     # Add computed fields
     current_contexts = serializers.SerializerMethodField()
-    utilization_rate = serializers.SerializerMethodField()
+    #utilization_rate = serializers.SerializerMethodField()
     is_available = serializers.SerializerMethodField()
 
     class Meta:
         model = Space
-        fields = ['id', 'name', 'capacity', 'created_at',
-                  'current_contexts', 'is_available']
+        fields = ['id', 'name', 'capacity', 'created_at', 'current_contexts' , 'is_available']
         read_only_fields = ['id', 'created_at']
 
     def get_current_contexts(self, obj):
