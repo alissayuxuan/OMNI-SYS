@@ -33,6 +33,7 @@ export const manageHospitalData = () => {
         params: filters,
         });
 
+        console.log("getAgents: \n", response.data)
         return response.data; // enthält z. B. { results: [...], count: ..., next: ..., previous: ... }
     } catch (error) {
         const message = error.response?.data?.detail || "Error fetching agents";
@@ -48,7 +49,7 @@ export const manageHospitalData = () => {
         const response = await api.get("api/contexts/", {
         params: filters,
         });
-
+        console.log("getContext: \n", response.data)
         return response.data; // enthält z. B. { results: [...], count: ..., next: ..., previous: ... }
     } catch (error) {
         const message = error.response?.data?.detail || "Error fetching contexts";
@@ -63,7 +64,7 @@ export const manageHospitalData = () => {
         const response = await api.get("api/spaces/", {
         params: filters,
         });
-
+        console.log("getSpaces: \n", response.data)
         return response.data; // enthält z. B. { results: [...], count: ..., next: ..., previous: ... }
     } catch (error) {
         const message = error.response?.data?.detail || "Error fetching spaces";
@@ -481,11 +482,8 @@ export const manageHospitalData = () => {
   return {
     getProfile,
     getAgents,
-    getAllAgents,
     getContexts,
-    getAllContexts,
     getSpaces,
-    getAllSpaces,
     getUsers,
     getUser,
     getAgentProfiles,
