@@ -25,8 +25,18 @@ export const UserManagement = () => {
   const [confirmDialog, setConfirmDialog] = useState({ open: false, object: null });
 
 
-  const { data: agentsRes = { results: [] }, isLoading: loadingAgents } = useQuery({ queryKey: ['agents'], queryFn: getAgents });
-  const { data: adminsRes = [], isLoading: loadingAdmins } = useQuery({ queryKey: ['admins'], queryFn: getAdminProfiles });
+  const { data: agentsRes = { results: [] }, isLoading: loadingAgents } = useQuery({ 
+    queryKey: ['agents'], 
+    queryFn: getAgents,
+    refetchInterval: 60 * 1000, 
+    refetchIntervalInBackground: false 
+  });
+  const { data: adminsRes = [], isLoading: loadingAdmins } = useQuery({ 
+    queryKey: ['admins'], 
+    queryFn: getAdminProfiles,
+    refetchInterval: 60 * 1000, 
+    refetchIntervalInBackground: false 
+  });
 
   const users = useMemo(() => {
     const normalizedAdmins = adminsRes.map(admin => ({

@@ -21,8 +21,18 @@ export const RelationshipManagement = () => {
   const [editingObject, setEditingObject] = useState(null);
   const [actionMode, setActionMode] = useState(null); // 'create' or 'edit'
 
-  const { data: relationshipsRes = { results: [] }, isLoading: loadingRelationships } = useQuery({ queryKey: ['relationships'], queryFn: getRelationships });
-  const { data: agentList = { results: [] }, isLoading: loadingAgents } = useQuery({ queryKey: ['agents'], queryFn: getAgents });
+  const { data: relationshipsRes = { results: [] }, isLoading: loadingRelationships } = useQuery({ 
+    queryKey: ['relationships'], 
+    queryFn: getRelationships,
+    refetchInterval: 60 * 1000, 
+    refetchIntervalInBackground: false
+  });
+  const { data: agentList = { results: [] }, isLoading: loadingAgents } = useQuery({ 
+    queryKey: ['agents'], 
+    queryFn: getAgents,
+    refetchInterval: 60 * 1000,
+    refetchIntervalInBackground: false 
+  });
 
   const agentMap = useMemo(() => {
     return new Map(agentList.results.map(a => [a.id, a.name]));
@@ -32,7 +42,9 @@ export const RelationshipManagement = () => {
     return relationshipsRes.results.map(rel => ({
       id: rel.id,
       agent_from: agentMap.get(rel.agent_from) || rel.agent_from,
+      agentFrom: rel.agent_from, //ID needed for edit
       agent_to: agentMap.get(rel.agent_to) || rel.agent_to,
+      agentTo: rel.agent_to, 
       description: rel.description,
       createdAt: rel.created_at
     }));

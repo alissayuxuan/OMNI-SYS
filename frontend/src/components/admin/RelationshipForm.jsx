@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { manageHospitalData } from '@/hooks/manageHospitalData';
 
-export const RelationshipForm = ({ isOpen, onClose, agents, refreshData, mode = 'create', initialData = {} }) => {
+export const RelationshipForm = ({ isOpen, onClose, agents, refreshData, mode = 'create', initialData }) => {
   const { createRelationship, updateRelationship } = manageHospitalData();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -19,9 +19,9 @@ export const RelationshipForm = ({ isOpen, onClose, agents, refreshData, mode = 
   useEffect(() => {
     if (mode === 'edit' && initialData) {
       setFormData({
-        agent_from: initialData.agent_from || '',
-        agent_to: initialData.agent_to || '',
-        description: initialData.description || '',
+        agent_from: initialData.agentFrom,
+        agent_to: initialData.agentTo,
+        description: initialData.description,
       });
     }
   }, [mode, initialData]);
