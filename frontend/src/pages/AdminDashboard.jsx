@@ -67,7 +67,7 @@ export const AdminDashboard = () => {
     type: "agent",
     createdAt: agent.created_at,
     properties: {
-      username: agent.name
+      
     },
   })), [agentsRes]);
 
@@ -77,10 +77,9 @@ export const AdminDashboard = () => {
     type: "context",
     createdAt : context.created_at,
     properties: {
-      django_id: context.id,
       time: context.scheduled,
-      paticipantIds: context.agents.map(agent_id => "agent-" + agent_id),
-      spaceId: "space-" + context.space,
+      paticipants: context.agents_detail.map(agent => agent.name),
+      space: context.space_detail.name
     },
   })), [contextsRes]);
 

@@ -10,11 +10,20 @@ import { useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const AgentDashboard = () => {
-  //const { objects, relationships } = useHospitalData(true);
 
-  const { getAgents, getSpaces, getContexts, getRelationships } = manageHospitalData();
+  const { getProfile, getAgents, getSpaces, getContexts, getRelationships } = manageHospitalData();
 
   const queryClient = useQueryClient();
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['profile'],
+    queryFn: getProfile,
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  console.log("PROFILE: ", profile)
+
   const { data: agentsRes = { results: [] }, isLoading: loadingAgents } = useQuery({ 
     queryKey: ['agents'], 
     queryFn: getAgents,
@@ -59,7 +68,7 @@ export const AgentDashboard = () => {
 
 
   /* Objects and Relationships for Graph Visualization */
-  const agents = useMemo(() => agentsRes.results.map(agent => ({
+  /*const agents = useMemo(() => agentsRes.results.map(agent => ({
     id: "agent-" + agent.id,
     name: agent.name,
     type: "agent",
@@ -135,7 +144,154 @@ export const AgentDashboard = () => {
     }));
   
     return [...rels, ...backendRelationships];
+  }, [contextsRes, relationshipsRes]);*/
+
+  
+  // Hilfsfunktion um alle verbundenen Objekte zu einer bestimmten agentId zu finden
+  const getConnectedObjects = (targetAgentId, allRelationships) => {
+    const connectedObjectIds = new Set([`agent-${targetAgentId}`]);
+    const processedRelationships = new Set();
+    
+    // Rekursiv alle verbundenen Objekte finden
+    let foundNew = true;
+    while (foundNew) {
+      foundNew = false;
+      
+      for (const rel of allRelationships) {
+        const relKey = `${rel.fromObjectId}-${rel.toObjectId}-${rel.relationshipType}`;
+        if (processedRelationships.has(relKey)) continue;
+        
+        // Wenn das "from" Objekt bereits in unserer Sammlung ist
+        if (connectedObjectIds.has(rel.fromObjectId)) {
+          if (!connectedObjectIds.has(rel.toObjectId)) {
+            connectedObjectIds.add(rel.toObjectId);
+            foundNew = true;
+          }
+          processedRelationships.add(relKey);
+        }
+        
+        // Wenn das "to" Objekt bereits in unserer Sammlung ist
+        if (connectedObjectIds.has(rel.toObjectId)) {
+          if (!connectedObjectIds.has(rel.fromObjectId)) {
+            connectedObjectIds.add(rel.fromObjectId);
+            foundNew = true;
+          }
+          processedRelationships.add(relKey);
+        }
+      }
+    }
+    
+    return connectedObjectIds;
+  };
+
+  const agents = useMemo(() => agentsRes.results.map(agent => ({
+    id: "agent-" + agent.id,
+    name: agent.name,
+    type: "agent",
+    createdAt: agent.created_at,
+    properties: {},
+  })), [agentsRes]);
+
+  const contexts = useMemo(() => contextsRes.results.map(context => ({
+    id: "context-" + context.id,
+    name: context.name,
+    type: "context",
+    createdAt: context.created_at,
+    properties: {
+      time: context.scheduled,
+      paticipants: context.agents_detail.map(agent => agent.name),
+      space: context.space_detail.name
+    },
+  })), [contextsRes]);
+
+  const spaces = useMemo(() => spacesRes.results.map(space => ({
+    id: "space-" + space.id,
+    name: space.name,
+    type: "space",
+    createdAt: space.created_at,
+    properties: {
+      capacity: space.capacity,
+    },
+  })), [spacesRes]);
+
+  const allRelationships = useMemo(() => {
+    const rels = [];
+
+    // Relationships from context → agents / spaces
+    for (const context of contextsRes.results) {
+      // Agent → Context
+      for (const agentId of context.agents || []) {
+        rels.push({
+          fromObjectId: "agent-" + agentId,
+          toObjectId: "context-" + context.id,
+          relationshipType: "participates_in",
+        });
+      }
+
+      // Space → Context
+      if (context.space) {
+        rels.push({
+          fromObjectId: "space-" + context.space,
+          toObjectId: "context-" + context.id,
+          relationshipType: "assigned_space",
+        });
+      }
+    }
+
+    // Explicit agent ↔ agent relationships from backend
+    const backendRelationships = (relationshipsRes?.results || []).map(rel => ({
+      id: "relationship" + rel.id,
+      fromObjectId: "agent-" + rel.agent_from,
+      toObjectId: "agent-" + rel.agent_to,
+      relationshipType: rel.description || 'related',
+    }));
+
+    return [...rels, ...backendRelationships];
   }, [contextsRes, relationshipsRes]);
+
+  // GEFILTERTE OBJEKTE UND BEZIEHUNGEN
+  const getFilteredData = (targetAgentId) => {
+    if (!targetAgentId) {
+      // Wenn keine agentId angegeben, alle Objekte zurückgeben
+      return {
+        objects: [...agents, ...contexts, ...spaces],
+        relationships: allRelationships
+      };
+    }
+
+    // Alle verbundenen Objekt-IDs finden
+    const connectedObjectIds = getConnectedObjects(targetAgentId, allRelationships);
+    
+    // Objekte filtern
+    const filteredObjects = [
+      ...agents.filter(agent => connectedObjectIds.has(agent.id)),
+      ...contexts.filter(context => connectedObjectIds.has(context.id)),
+      ...spaces.filter(space => connectedObjectIds.has(space.id))
+    ];
+    
+    // Beziehungen filtern (nur die zwischen den gefilterten Objekten)
+    const filteredRelationships = allRelationships.filter(rel => 
+      connectedObjectIds.has(rel.fromObjectId) && 
+      connectedObjectIds.has(rel.toObjectId)
+    );
+    
+    return {
+      objects: filteredObjects,
+      relationships: filteredRelationships
+    };
+  };
+
+
+  const targetAgentId = profile?.agent_object?.id;
+  const { objects: filteredObjects, relationships: filteredRelationships } = useMemo(() => 
+    getFilteredData(targetAgentId), 
+    [targetAgentId, agents, contexts, spaces, allRelationships]
+  );
+
+  const allObjects = useMemo(() => [...agents, ...contexts, ...spaces], [agents, contexts, spaces]);
+
+  //const { objects: filteredObjects, relationships: filteredRelationships } =  useMemo(() => getFilteredData(targetAgentId), [targetAgentId, agents, contexts, spaces, allRelationships]);
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -219,7 +375,7 @@ export const AgentDashboard = () => {
                 <CardDescription>Visual representation of all objects and their relationships with filtering and search</CardDescription>
               </CardHeader>
               <CardContent>
-                <GraphVisualization objects={objects} relationships={relationships} />
+                <GraphVisualization objects={filteredObjects} relationships={filteredRelationships} />
               </CardContent>
             </Card>
           </TabsContent>
