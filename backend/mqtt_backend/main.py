@@ -4,6 +4,10 @@ from objects.robot import Robot
 from objects.human_interface import HumanInterface
 from utils.hl7_generator import generate_hl7
 from utils.dicom_generator import create_dicom, dicom_bytes_to_base64
+import time
+import logging
+
+logger = logging.getLogger('omnisyslogger')
 
 if __name__ == "__main__":
     med_device = MedicalDevice("device_X")
@@ -16,7 +20,6 @@ if __name__ == "__main__":
 
     time.sleep(1)
 
-    import time
     msh_kwargs = {
         "msh_3": "SendingApp",
         "msh_4": "SendingFac",
@@ -51,4 +54,4 @@ if __name__ == "__main__":
         while True:
             time.sleep(5)
     except KeyboardInterrupt:
-        print("Exiting...")
+        logger.info("Exiting...")

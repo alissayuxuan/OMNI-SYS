@@ -4,8 +4,9 @@ from threading import Thread
 from paho.mqtt.client import Client
 from .protocol_router import ProtocolRouter
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+import logging
 
-
+logger = logging.getLogger('omnisyslogger')
 BROKER = "localhost" 
 PORT = 1883
 
@@ -25,12 +26,12 @@ class BaseNode:
             self.load_tokens()
             self.connect_with_token()
         except Exception as e:
-            print(f"[Retry] Access token failed, trying refresh: {e}")
+            logger.warning(f"[Retry] Access token failed, trying refresh: {e}")
             try:
                 self.refresh_access_token()
                 self.connect_with_token()
             except Exception as e2:
-                print(f"[Retry] Refresh token failed, re-authenticating: {e2}")
+                logger.warning(f"[Retry] Refresh token failed, re-authenticating: {e2}")
                 self.get_new_tokens()
                 self.connect_with_token()
 
@@ -59,17 +60,17 @@ class BaseNode:
         handler = ProtocolRouter.get_handler(message['protocol'])
         if handler:
             decoded = handler.decode(message['payload'])
-            print(f"[Object: {self.object_id}] Got {message['protocol']} message: {decoded}")
+            logger.info(f"[Object: {self.object_id}] Got {message['protocol']} message: {decoded}")
         else:
-            print(f"[Object: {self.object_id}] Received message: {message}")
+            logger.info(f"[Object: {self.object_id}] Received message: {message}")
 
     def shutdown(self):
         try:
             self.client.disconnect()
             self.client.loop_stop()
-            print(f"[Object: {self.object_id}] MQTT client disconnected and loop stopped.")
+            logger.info(f"[Object: {self.object_id}] MQTT client disconnected and loop stopped.")
         except Exception as e:
-            print(f"Error shutting down {self.object_id}: {e}")
+            logger.error(f"Error shutting down {self.object_id}: {e}")
     
     def get_new_tokens(self):
         """Full re-authentication using username/password"""
