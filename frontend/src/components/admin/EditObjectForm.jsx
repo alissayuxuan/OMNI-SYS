@@ -23,13 +23,18 @@ export const EditObjectForm = ({ isOpen, onClose, object, refreshData, agents, s
   const [spaceForm, setSpaceForm] = useState({ name: '', capacity: 1 });
 
   useEffect(() => {
+    console.log("object: ", object)
     if (object) {
       if (object.type === "agent") {
         setAgentForm({ name: object.name });
       } else if (object.type === "context") {
+        const date = new Date(object.time);
+        const pad = (n) => String(n).padStart(2, '0');
+        const time = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        
         setContextForm({
           name: object.name,
-          time: object.time,
+          time,
           spaceId: object.spaceId,
           participantIds: object.participantIds || [],
         });
@@ -51,12 +56,20 @@ export const EditObjectForm = ({ isOpen, onClose, object, refreshData, agents, s
       if (object.type === "agent") {
         await updateAgent(object.id, { name: agentForm.name });
       } else if (object.type === "context") {
-        await updateContext(object.id, {
+        console.log("contextForm.time:", contextForm.time);
+        console.log("Parsed date:", new Date(contextForm.time));
+
+        const scheduled = new Date(contextForm.time).toISOString().split('.')[0] + 'Z';
+        const payload = {
           name: contextForm.name,
-          scheduled: new Date(contextForm.time).toISOString(),
+          scheduled,
+          agents: contextForm.participantIds,
           space_id: contextForm.spaceId,
           agent_ids: contextForm.participantIds,
-        });
+        }
+        console.log("UPDATE CONTEXT: \n", payload)
+
+        await updateContext(object.id, payload);
       } else if (object.type === "space") {
         await updateSpace(object.id, {
           name: spaceForm.name,
@@ -123,7 +136,7 @@ export const EditObjectForm = ({ isOpen, onClose, object, refreshData, agents, s
               </div>
 
               <div>
-                <Label htmlFor="edit-time">Time</Label>
+                <Label htmlFor="edit-time">Start Time</Label>
                 <Input
                   id="edit-time"
                   type="datetime-local"

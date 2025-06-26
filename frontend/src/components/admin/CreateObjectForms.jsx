@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useHospitalData } from '@/hooks/useHospitalData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -104,11 +103,16 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
       const payload = {
         name: contextForm.name.trim(),
         scheduled,
+        agents:  contextForm.participantIds.map(id => Number(id)),
         space_id: Number(contextForm.spaceId),
         agent_ids: contextForm.participantIds.map(id => Number(id)),
       };
+
+      console.log("payload:\n", payload)
   
-      await createContext(payload);
+      const createdContext = await createContext(payload);
+
+      console.log("createdContext:\n", createdContext)
 
       toast({
         title: "Successful",
@@ -296,7 +300,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
               />
             </div>
             <div>
-              <Label htmlFor="context-time">Time *</Label>
+              <Label htmlFor="context-time">Start Time *</Label>
               <Input
                 id="context-time"
                 type="datetime-local"
@@ -304,6 +308,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
                 onChange={(e) => setContextForm(prev => ({ ...prev, time: e.target.value }))}
               />
             </div>
+            
             <div>
               <Label htmlFor="context-space">Space</Label>
               <Select value={contextForm.spaceId} onValueChange={(value) => setContextForm(prev => ({ ...prev, spaceId: value }))}>
