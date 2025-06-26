@@ -3,14 +3,18 @@ from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from .models import Agent, Space, Context, Relationship
 from .serializers import AgentSerializer, SpaceSerializer, ContextSerializer, RelationshipSerializer
 from django_filters.rest_framework import DjangoFilterBackend
+from django.core.cache import cache
+import json
 from .filters import AgentFilter, SpaceFilter, ContextFilter
 from .pagination import StandardResultsSetPagination
 import logging
 from mqtt_backend.comm_node_manager import CommNodeManager
 logger = logging.getLogger('omnisyslogger')
+
 
 class AgentViewSet(viewsets.ModelViewSet):
     """
@@ -363,3 +367,52 @@ class RelationshipViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         logger.debug(f"User {request.user.username} retrieving relationship ID: {instance.id}")
         return super().retrieve(request, *args, **kwargs)
+
+class AgentSendMessageView(APIView):
+    def post(self, request, agent_id):
+        """Accept a message and publish to MQTT. On failure, store in Redis."""
+        destination = request.data.get("destination")
+        protocol = request.data.get("protocol")
+        msg_type = request.data.get("type")
+        payload = request.data.get("payload")
+
+        if not destination or not payload:
+            return Response({"error": "Missing destination or payload"}, status=400)
+
+        node = CommNodeManager.get_node(agent_id)
+        if not node:
+            return Response({"error": "Agent not connected"}, status=404)
+
+        try:
+            node.send_message(destination, protocol, msg_type, payload)
+            return Response({"status": "Message sent via MQTT"})
+        except Exception as e:
+            # Fallback: store in Redis buffer
+            cache_key = f"buffer:{agent_id}:{destination}"
+            message_data = json.dumps({
+                "protocol": protocol,
+                "type": msg_type,
+                "payload": payload,
+            })
+            cache.lpush(cache_key, message_data)
+            return Response({"status": "MQTT failed, message buffered"}, status=202)
+
+
+class AgentReceiveMessageView(APIView):
+    def get(self, request, agent_id):
+        """Retrieve and clear buffered messages for the agent."""
+        buffer_key_prefix = f"buffer:*:{agent_id}"
+        import redis
+        r = redis.Redis(host='redis', port=6379, db=1)
+        keys = r.keys(buffer_key_prefix)
+
+        all_messages = []
+        for key in keys:
+            while True:
+                message_json = r.rpop(key)
+                if not message_json:
+                    break
+                message = json.loads(message_json)
+                all_messages.append(message)
+
+        return Response(all_messages)
