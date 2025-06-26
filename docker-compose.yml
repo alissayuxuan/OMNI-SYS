@@ -13,6 +13,13 @@ services:
       - EMQX_CLUSTER__DISCOVERY=static
       - EMQX_NODE__COOKIE=emqxsecretcookie
 
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+
   backend:
     build:
       context: .
