@@ -29,16 +29,23 @@ export const ObjectManagement = () => {
   const { data: agentsRes = { results: [] }, isLoading: loadingAgents } = useQuery({
     queryKey: ['agents', showAll],
     queryFn: () => (showAll ? getAgents({ archived: 'true' }) : getAgents({ archived: 'false' })),
+    refetchInterval: 60 * 1000, 
+    refetchIntervalInBackground: false 
   });    
 
   const { data: contextsRes = { results: [] }, isLoading: loadingContexts } = useQuery({
     queryKey: ['contexts', showAll],
     queryFn: () => (showAll ? getContexts({ archived: 'true' }) : getContexts({ archived: 'false' })),
+    refetchInterval: 60 * 1000, 
+    refetchIntervalInBackground: false 
   });
+
   
   const { data: spacesRes = { results: [] }, isLoading: loadingSpaces } = useQuery({
     queryKey: ['spaces', showAll],
     queryFn: () => (showAll ? getSpaces({ archived: 'true' }) : getSpaces({ archived: 'false' })),
+    refetchInterval: 60 * 1000, 
+    refetchIntervalInBackground: false 
   });
 
 
