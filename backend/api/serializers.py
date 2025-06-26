@@ -130,6 +130,7 @@ class ContextSerializer(serializers.ModelSerializer):
         """Validate context name"""
         if len(value.strip()) < 5:
             raise serializers.ValidationError("Context name must be at least 5 characters long")
+        return value
 
     def validate_scheduled(self, value):
         """Validate scheduled time"""

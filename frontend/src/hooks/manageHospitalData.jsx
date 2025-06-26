@@ -293,10 +293,12 @@ export const manageHospitalData = () => {
   const updateContext = async (contextId, updatedData, isPartial = true) => {
     try {
       const method = isPartial ? "patch" : "put";
+      console.log("updateContext: ", updatedData)
       const res = await api[method](`/api/contexts/${contextId}/`, updatedData);
       return res.data;
     } catch (error) {
       const message = error.response?.data?.error || "Error occured when updating the context.";
+      console.log("error update context: ", error)
       throw new Error(message);
     }
   };

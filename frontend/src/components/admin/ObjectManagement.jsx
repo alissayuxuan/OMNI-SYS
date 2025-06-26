@@ -55,9 +55,9 @@ export const ObjectManagement = () => {
     name: context.name,
     type: "context",
     createdAt: context.created_at,
-    time: context.time,
-    spaceId: context.space_id,
-    participantIds: context.agent_ids,
+    time: context.scheduled,
+    spaceId: context.space,
+    participantIds: context.agents,
     archived: context.is_archived,
   })), [contextsRes]);
 
@@ -89,6 +89,7 @@ export const ObjectManagement = () => {
   };
 
   const handleEditObject = (object) => {
+    console.log("editing object: ", object)
     setEditingObject(object);
     setIsEditDialogOpen(true);
   };
