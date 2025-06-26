@@ -1,4 +1,7 @@
 from mqtt_backend.core.base_node import BaseNode
+import logging
+
+logger = logging.getLogger('omnisyslogger')
 
 class CommNodeManager:
     live_nodes = {}
@@ -9,7 +12,10 @@ class CommNodeManager:
             node = BaseNode(str(agent_id), username, password)
             node.start()
             cls.live_nodes[agent_id] = node
+            logger.info(f"Created new node for agent {agent_id}")
             return node
+        
+        logger.info(f"Reusing existing node for agent {agent_id}")
         return cls.live_nodes[agent_id]
 
     @classmethod
@@ -17,6 +23,7 @@ class CommNodeManager:
         node = cls.live_nodes.pop(agent_id, None)
         if node:
             node.shutdown()
+            logger.info(f"Node for agent {agent_id} shut down successfully")
 
     @classmethod
     def get_node(cls, agent_id):
@@ -24,12 +31,13 @@ class CommNodeManager:
 
     @classmethod
     def rebuild_all(cls, agent_ids):
-        # Rebuild nodes for all agent IDs
         for agent_id in agent_ids:
             cls.create_node(agent_id)
+        logger.info("All nodes rebuilt successfully")
 
     @classmethod
     def shutdown_all(cls):
         for node in list(cls.live_nodes.values()):
             node.shutdown()
         cls.live_nodes.clear()
+        logger.info("All nodes shut down successfully")
