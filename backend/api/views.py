@@ -3,9 +3,12 @@ from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from .models import Agent, Space, Context, Relationship
 from .serializers import AgentSerializer, SpaceSerializer, ContextSerializer, RelationshipSerializer
 from django_filters.rest_framework import DjangoFilterBackend
+from django.core.cache import cache
+import json
 from .filters import AgentFilter, SpaceFilter, ContextFilter
 from .pagination import StandardResultsSetPagination
 from django.db import IntegrityError
@@ -85,19 +88,23 @@ class AgentViewSet(viewsets.ModelViewSet):
         return self._filter_queryset(queryset)
 
     def create(self, request, *args, **kwargs):
-        try:
+        try: 
             logger.info(f"Creating new agent with data: {request.data}")
             response = super().create(request, *args, **kwargs)
-            logger.info(f"Successfully created agent with ID: {response.data.get('id')}")
+            logger.info(f"Successfully created agent with ID: {response.data.get('id')}") 
 
             agent_id = response.data.get('id')
-            if agent_id:
-                try:
-                    CommNodeManager.create_node(agent_id)
-                except Exception as comm_error:
-                    logger.error(f"Failed to create comm node: {str(comm_error)}")
-                    # Continue anyway, don't fail the request
+            username = request.data.get('username')
+            password = request.data.get('password')
 
+            if agent_id and username and password:
+                node = CommNodeManager.create_node(agent_id, username, password)
+                if node:
+                    client_id = node.client._client_id
+                    response.data['client_created'] = True
+                    logger.info(f"Communication node created with client ID: {client_id}")
+                else:
+                    logger.warning(f"Failed to create communication node for agent ID: {agent_id}")
             return response
 
         except Exception as e:
@@ -591,3 +598,52 @@ class RelationshipViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.error(f"Error deleting relationship: {str(e)}")
             return handle_api_error(e, "Failed to delete relationship")
+
+class AgentSendMessageView(APIView):
+    def post(self, request, agent_id):
+        """Accept a message and publish to MQTT. On failure, store in Redis."""
+        destination = request.data.get("destination")
+        protocol = request.data.get("protocol")
+        msg_type = request.data.get("type")
+        payload = request.data.get("payload")
+
+        if not destination or not payload:
+            return Response({"error": "Missing destination or payload"}, status=400)
+
+        node = CommNodeManager.get_node(agent_id)
+        if not node:
+            return Response({"error": "Agent not connected"}, status=404)
+
+        try:
+            node.send_message(destination, protocol, msg_type, payload)
+            return Response({"status": "Message sent via MQTT"})
+        except Exception as e:
+            # Fallback: store in Redis buffer
+            cache_key = f"buffer:{agent_id}:{destination}"
+            message_data = json.dumps({
+                "protocol": protocol,
+                "type": msg_type,
+                "payload": payload,
+            })
+            cache.lpush(cache_key, message_data)
+            return Response({"status": "MQTT failed, message buffered"}, status=202)
+
+
+class AgentReceiveMessageView(APIView):
+    def get(self, request, agent_id):
+        """Retrieve and clear buffered messages for the agent."""
+        buffer_key_prefix = f"buffer:*:{agent_id}"
+        import redis
+        r = redis.Redis(host='redis', port=6379, db=1)
+        keys = r.keys(buffer_key_prefix)
+
+        all_messages = []
+        for key in keys:
+            while True:
+                message_json = r.rpop(key)
+                if not message_json:
+                    break
+                message = json.loads(message_json)
+                all_messages.append(message)
+
+        return Response(all_messages)
