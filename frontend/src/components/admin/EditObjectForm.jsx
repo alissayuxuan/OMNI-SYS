@@ -23,7 +23,6 @@ export const EditObjectForm = ({ isOpen, onClose, object, refreshData, agents, s
   const [spaceForm, setSpaceForm] = useState({ name: '', capacity: 1 });
 
   useEffect(() => {
-    console.log("object: ", object)
     if (object) {
       if (object.type === "agent") {
         setAgentForm({ name: object.name });
@@ -56,8 +55,6 @@ export const EditObjectForm = ({ isOpen, onClose, object, refreshData, agents, s
       if (object.type === "agent") {
         await updateAgent(object.id, { name: agentForm.name });
       } else if (object.type === "context") {
-        console.log("contextForm.time:", contextForm.time);
-        console.log("Parsed date:", new Date(contextForm.time));
 
         const scheduled = new Date(contextForm.time).toISOString().split('.')[0] + 'Z';
         const payload = {
@@ -67,7 +64,6 @@ export const EditObjectForm = ({ isOpen, onClose, object, refreshData, agents, s
           space_id: contextForm.spaceId,
           agent_ids: contextForm.participantIds,
         }
-        console.log("UPDATE CONTEXT: \n", payload)
 
         await updateContext(object.id, payload);
       } else if (object.type === "space") {

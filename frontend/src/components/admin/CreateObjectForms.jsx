@@ -87,32 +87,29 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
     setIsCreating(true);
     e.preventDefault();
     
-    if (!contextForm.name || !contextForm.time || !contextForm.spaceId || !contextForm.participantIds) {
+    if (!contextForm.name || !contextForm.time || !contextForm.participantIds) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
         variant: "destructive"
       });
+      setIsCreating(false);
       return;
     }
 
     try {  
-      // Umwandlung datetime-local in ISO string mit 'Z'
+      // Transform datetime-local in ISO string with 'Z'
       const scheduled = new Date(contextForm.time).toISOString().split('.')[0] + 'Z';
-  
+
       const payload = {
         name: contextForm.name.trim(),
         scheduled,
         agents:  contextForm.participantIds.map(id => Number(id)),
-        space_id: Number(contextForm.spaceId),
         agent_ids: contextForm.participantIds.map(id => Number(id)),
+        ...(contextForm.spaceId !== 'none' && { space_id: Number(contextForm.spaceId) })
       };
 
-      console.log("payload:\n", payload)
-  
       const createdContext = await createContext(payload);
-
-      console.log("createdContext:\n", createdContext)
 
       toast({
         title: "Successful",

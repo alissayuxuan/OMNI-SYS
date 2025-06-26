@@ -1,7 +1,6 @@
 import { Header } from '@/components/layout/Header';
 import { ProfileSettings } from '@/components/settings/ProfileSettings';
 import { GraphVisualization } from '@/components/graph/GraphVisualization';
-import { useHospitalData } from '@/hooks/useHospitalData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Database, Network, CalendarDays, Building } from 'lucide-react';
@@ -21,8 +20,6 @@ export const AgentDashboard = () => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   });
-
-  console.log("PROFILE: ", profile)
 
   const { data: agentsRes = { results: [] }, isLoading: loadingAgents } = useQuery({ 
     queryKey: ['agents'], 
@@ -65,94 +62,13 @@ export const AgentDashboard = () => {
       totalObjects: agentCount + contextCount + spaceCount
     };
   }, [agentsRes, contextsRes, spacesRes, relationshipsRes]);
-
-
+  
   /* Objects and Relationships for Graph Visualization */
-  /*const agents = useMemo(() => agentsRes.results.map(agent => ({
-    id: "agent-" + agent.id,
-    name: agent.name,
-    type: "agent",
-    createdAt: agent.created_at,
-    properties: {
-      username: agent.name
-    },
-  })), [agentsRes]);
-
-  const contexts = useMemo(() => contextsRes.results.map(context => ({
-    id: "context-" + context.id,
-    name: context.name,
-    type: "context",
-    createdAt : context.created_at,
-    properties: {
-      django_id: context.id,
-      time: context.scheduled,
-      paticipantIds: context.agents.map(agent_id => "agent-" + agent_id),
-      spaceId: "space-" + context.space,
-    },
-  })), [contextsRes]);
-
-  
-  const spaces = useMemo(() => spacesRes.results.map(space => ({
-    id: "space-" + space.id,
-    name: space.name,
-    type: "space",
-    createdAt: space.created_at,
-    properties: {
-      capacity: space.capacity,
-    },
-  })), [spacesRes]);
-
-  const objects = useMemo(() => {
-    return [
-      ...agents,   
-      ...contexts,
-      ...spaces
-    ];
-  }, [agents, contexts, spaces]);
-
-
-  const relationships = useMemo(() => {
-    const rels = [];
-  
-    // Relationships from context → agents / spaces
-    for (const context of contextsRes.results) {
-      // Agent → Context
-      for (const agentId of context.agents || []) {
-        rels.push({
-          fromObjectId: "agent-" + agentId,
-          toObjectId: "context-" + context.id,
-          relationshipType: "participates_in",
-        });
-      }
-  
-      // Space → Context
-      if (context.space) {
-        rels.push({
-          fromObjectId: "space-" + context.space,
-          toObjectId: "context-" + context.id,
-          relationshipType: "assigned_space",
-        });
-      }
-    }
-  
-    // Explicit agent ↔ agent relationships from backend
-    const backendRelationships = (relationshipsRes?.results || []).map(rel => ({
-      id: "relationship" + rel.id,
-      fromObjectId: "agent-" + rel.agent_from,
-      toObjectId: "agent-" + rel.agent_to,
-      relationshipType: rel.description || 'related',
-    }));
-  
-    return [...rels, ...backendRelationships];
-  }, [contextsRes, relationshipsRes]);*/
-
-  
-  // Hilfsfunktion um alle verbundenen Objekte zu einer bestimmten agentId zu finden
+  //filter for connectong objects of certain agent
   const getConnectedObjects = (targetAgentId, allRelationships) => {
     const connectedObjectIds = new Set([`agent-${targetAgentId}`]);
     const processedRelationships = new Set();
     
-    // Rekursiv alle verbundenen Objekte finden
     let foundNew = true;
     while (foundNew) {
       foundNew = false;
@@ -161,7 +77,6 @@ export const AgentDashboard = () => {
         const relKey = `${rel.fromObjectId}-${rel.toObjectId}-${rel.relationshipType}`;
         if (processedRelationships.has(relKey)) continue;
         
-        // Wenn das "from" Objekt bereits in unserer Sammlung ist
         if (connectedObjectIds.has(rel.fromObjectId)) {
           if (!connectedObjectIds.has(rel.toObjectId)) {
             connectedObjectIds.add(rel.toObjectId);
@@ -170,7 +85,6 @@ export const AgentDashboard = () => {
           processedRelationships.add(relKey);
         }
         
-        // Wenn das "to" Objekt bereits in unserer Sammlung ist
         if (connectedObjectIds.has(rel.toObjectId)) {
           if (!connectedObjectIds.has(rel.fromObjectId)) {
             connectedObjectIds.add(rel.fromObjectId);
@@ -249,27 +163,23 @@ export const AgentDashboard = () => {
     return [...rels, ...backendRelationships];
   }, [contextsRes, relationshipsRes]);
 
-  // GEFILTERTE OBJEKTE UND BEZIEHUNGEN
+  // filtered Obejcts and Relationships
   const getFilteredData = (targetAgentId) => {
     if (!targetAgentId) {
-      // Wenn keine agentId angegeben, alle Objekte zurückgeben
       return {
         objects: [...agents, ...contexts, ...spaces],
         relationships: allRelationships
       };
     }
 
-    // Alle verbundenen Objekt-IDs finden
     const connectedObjectIds = getConnectedObjects(targetAgentId, allRelationships);
     
-    // Objekte filtern
     const filteredObjects = [
       ...agents.filter(agent => connectedObjectIds.has(agent.id)),
       ...contexts.filter(context => connectedObjectIds.has(context.id)),
       ...spaces.filter(space => connectedObjectIds.has(space.id))
     ];
     
-    // Beziehungen filtern (nur die zwischen den gefilterten Objekten)
     const filteredRelationships = allRelationships.filter(rel => 
       connectedObjectIds.has(rel.fromObjectId) && 
       connectedObjectIds.has(rel.toObjectId)
@@ -287,11 +197,6 @@ export const AgentDashboard = () => {
     getFilteredData(targetAgentId), 
     [targetAgentId, agents, contexts, spaces, allRelationships]
   );
-
-  const allObjects = useMemo(() => [...agents, ...contexts, ...spaces], [agents, contexts, spaces]);
-
-  //const { objects: filteredObjects, relationships: filteredRelationships } =  useMemo(() => getFilteredData(targetAgentId), [targetAgentId, agents, contexts, spaces, allRelationships]);
-
 
   return (
     <div className="min-h-screen bg-gray-50">
