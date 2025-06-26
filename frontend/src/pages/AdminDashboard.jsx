@@ -1,4 +1,3 @@
-import { useHospitalData } from '@/hooks/useHospitalData';
 import { useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/layout/Header';

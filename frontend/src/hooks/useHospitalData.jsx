@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+/*import { useState, useEffect } from 'react';
 import api from '../api';
 import { jwtDecode } from "jwt-decode";
 import { ACCESS_TOKEN } from "../constants";
@@ -428,4 +428,4 @@ export const useHospitalData = (filterByCurrentUser = false) => {
     deleteRelationship,
     refreshData
   };
-};
+};*/
