@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useHospitalData } from '@/hooks/useHospitalData';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,8 +10,11 @@ import { useToast } from '@/hooks/use-toast';
 import { CreateObjectForms } from './CreateObjectForms';
 import { EditObjectForm } from './EditObjectForm';
 
+import { manageHospitalData } from "@/hooks/manageHospitalData";
+
+
 export const ObjectManagement = () => {
-  const { objects, deleteObject } = useHospitalData();
+  //const { objects, deleteObject } = useHospitalData();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -20,12 +22,101 @@ export const ObjectManagement = () => {
   const [filterType, setFilterType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleDeleteObject = (objectId) => {
-    deleteObject(objectId);
-    toast({
-      title: "Success",
-      description: "Object deleted successfully"
-    });
+  //alissa
+  const [loading, setLoading] = useState(false)
+  const {getAgents, getContexts, getSpaces, deleteAgent, deleteContext, deleteSpace} = manageHospitalData();
+  const [agents, setAgents] = useState([]);
+  const [contexts, setContexts] = useState([]);
+  const [spaces, setSpaces] = useState([]);
+
+  const [allObjects, setAllObjects] = useState([]);
+
+  
+  const fetchHospitalData = useCallback(async () => {
+    setLoading(true);
+    
+    try {
+      const [agentsRes, contextsRes, spacesRes] = await Promise.all([
+        getAgents(),
+        getContexts(),
+        getSpaces()
+      ]);
+      //console.log("agentsRes: \n", agentsRes)
+      //console.log("contextsRes: \n", contextsRes)
+      //console.log("spacesRes: \n", spacesRes)      
+
+      const normalizedAgents = agentsRes.results.map(agent => ({
+        id: agent.id,
+        name: agent.name,
+        type: "agent",
+        createdAt: agent.created_at,
+      }));
+
+      const normalizedContexts = contextsRes.results.map(context => ({
+        id: context.id,
+        name: context.name,
+        type: "context",
+        createdAt: context.created_at,
+      }));
+  
+      const normalizedSpaces = spacesRes.results.map(space => ({
+        id: space.id,
+        name: space.name,
+        type: "space",
+        createdAt: space.created_at,
+      }));
+      setAgents(normalizedAgents);
+      setContexts(normalizedContexts);
+      setSpaces(normalizedSpaces);
+
+      setAllObjects([...normalizedAgents, ...normalizedContexts, ...normalizedSpaces]);
+
+    } catch (err) {
+      console.error("Failed to load hospital data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchHospitalData(); // fetch on mount
+  }, [fetchHospitalData]);
+  
+
+  const handleDeleteObject = async(object) => {
+    console.log("delete - object: ", object)
+
+    try {
+      let deletedObj = null;
+
+      if (object.type === "agent") {
+        console.log("delete agent")
+        deletedObj = await deleteAgent(object.id);
+      } 
+      else if (object.type === "context") {
+        deletedObj = await deleteContext(object.id);
+      }
+      else if (object.type === "space") {
+        deletedObj = await deleteSpace(object.id);
+      }
+
+      toast({
+        title: "Success",
+        description: "Object deleted successfully"
+      });
+      
+      console.log("Object deleted:", deletedObj);
+      fetchHospitalData();
+
+    } catch(err) {
+      console.error("Error:", err);
+      alert("An error occured");
+      toast({
+        title: "Error",
+        description: "An error occured"
+      });
+    } 
+    
   };
 
   const handleEditObject = (object) => {
@@ -33,10 +124,9 @@ export const ObjectManagement = () => {
     setIsEditDialogOpen(true);
   };
 
-  const filteredObjects = objects.filter(obj => {
+  const filteredObjects = allObjects.filter(obj => {
     const matchesType = filterType === 'all' || obj.type === filterType;
-    const matchesSearch = obj.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         obj.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = obj.name.toLowerCase().includes(searchTerm.toLowerCase())
     return matchesType && matchesSearch;
   });
 
@@ -99,14 +189,14 @@ export const ObjectManagement = () => {
           </TableHeader>
           <TableBody>
             {filteredObjects.map((object) => (
-              <TableRow key={object.id}>
+              <TableRow key={`${object.type}-${object.id}`}>
                 <TableCell className="font-medium">{object.name}</TableCell>
                 <TableCell>
                   <Badge className={getObjectTypeColor(object.type)}>
                     {object.type}
                   </Badge>
                 </TableCell>
-                <TableCell>{object.category}</TableCell>
+                <TableCell>{object.id}</TableCell>
                 <TableCell>{new Date(object.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
@@ -120,7 +210,7 @@ export const ObjectManagement = () => {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => handleDeleteObject(object.id)}
+                      onClick={() => handleDeleteObject(object)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -134,12 +224,16 @@ export const ObjectManagement = () => {
         <CreateObjectForms 
           isOpen={isCreateDialogOpen}
           onClose={() => setIsCreateDialogOpen(false)}
+          refreshData={fetchHospitalData} //alissa
+          agents={agents}
+          spaces={spaces}
         />
 
         <EditObjectForm
           isOpen={isEditDialogOpen}
           onClose={() => setIsEditDialogOpen(false)}
           object={editingObject}
+          refreshData={fetchHospitalData} //alissa
         />
       </CardContent>
     </Card>

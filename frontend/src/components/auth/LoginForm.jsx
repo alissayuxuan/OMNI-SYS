@@ -5,9 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import api from "../../api"
+import api from "@/api"
 import { useNavigate } from "react-router-dom"
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../constants"
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants"
 
 function LoginForm({route}) {
   const [username, setUsername] = useState('');
@@ -22,9 +22,7 @@ function LoginForm({route}) {
 
     try {
         const payload = { username, password };
-        console.log("LoginForm, payload: ", payload)
         const res = await api.post(route, payload)
-        console.log("LoginForm, response: ", res)
         console.log("res.data.role: ", res.data.role)
 
         if (res.status !== 200) {
@@ -35,6 +33,8 @@ function LoginForm({route}) {
             });
             return;
         } else {
+            localStorage.setItem(ACCESS_TOKEN, res.data.access);
+            localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
             if (res.data.role === "admin") {
               console.log("admin login")
               navigate("/admin-dashboard");
@@ -90,7 +90,7 @@ function LoginForm({route}) {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
                 type="username"
@@ -116,8 +116,8 @@ function LoginForm({route}) {
             </Button>
             <div className="text-sm text-muted-foreground space-y-1">
               <p>Demo credentials:</p>
-              <p>Admin: firstadmin / YourStrongPassword123</p>
-              <p>Agent: alissa / alissa123</p>
+              <p>Admin: admin_user / admin-password</p>
+              <p>Agent: agent_user / agent-password</p>
             </div>
           </form>
         </CardContent>

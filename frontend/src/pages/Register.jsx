@@ -1,4 +1,4 @@
-import RegistrationForm from "../components/RegistrationForm"
+import RegistrationForm from "../components/auth/RegistrationForm"
 
 function Register () {
     return <RegistrationForm route="/api/auth/user/register/"/>
