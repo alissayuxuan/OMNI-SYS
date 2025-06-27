@@ -14,6 +14,9 @@ from .pagination import StandardResultsSetPagination
 from django.db import IntegrityError
 import logging
 from mqtt_backend.comm_node_manager import CommNodeManager
+from users.models import CustomUser, AgentProfile
+from rest_framework.decorators import api_view
+from django.shortcuts import get_object_or_404
 
 logger = logging.getLogger('omnisyslogger')
 
@@ -647,3 +650,15 @@ class AgentReceiveMessageView(APIView):
                 all_messages.append(message)
 
         return Response(all_messages)
+
+@api_view(['GET'])
+def get_agent_id_by_username(request, username):
+    """Return the agent_id from a given user username"""
+    user = get_object_or_404(CustomUser, username=username)
+    agent_profile = get_object_or_404(AgentProfile, user=user)
+    agent = get_object_or_404(Agent, id=agent_profile.agent_object_id, is_archived=False)
+
+    return Response({
+        "agent_id": agent.id,
+        "agent_name": agent.name
+    })
