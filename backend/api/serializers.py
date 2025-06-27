@@ -9,7 +9,7 @@ from datetime import timedelta
 class AgentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Agent
-        fields = ['id', 'name', 'created_at']
+        fields = ['id', 'name', 'created_at', 'is_archived']
         read_only_fields = ['id', 'created_at']
 
     def validate_name(self, value):
@@ -46,7 +46,7 @@ class SpaceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Space
-        fields = ['id', 'name', 'capacity', 'created_at']
+        fields = ['id', 'name', 'capacity', 'created_at', 'is_archived']
         read_only_fields = ['id', 'created_at']
 
     def validate_name(self, value):
@@ -123,13 +123,14 @@ class ContextSerializer(serializers.ModelSerializer):
         model = Context
         fields = ['id', 'name', 'scheduled', 'space', 'agents',
                   'space_detail', 'agents_detail', 'space_id', 'agent_ids',
-                  'created_at']
+                  'created_at', 'is_archived']
         read_only_fields = ['id', 'created_at']
 
     def validate_name(self, value):
         """Validate context name"""
         if len(value.strip()) < 5:
             raise serializers.ValidationError("Context name must be at least 5 characters long")
+        return value
 
     def validate_scheduled(self, value):
         """Validate scheduled time"""
@@ -208,7 +209,7 @@ class ContextSerializer(serializers.ModelSerializer):
 class RelationshipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Relationship
-        fields = ['id', 'name', 'created_at']
+        fields = ['id', 'agent_from', 'agent_to', 'description', 'created_at'] # removed 'name' 
         read_only_fields = ['id', 'created_at']
 
 

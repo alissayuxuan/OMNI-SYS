@@ -1,7 +1,7 @@
+/*
 import { useState } from "react"
 import api from "@/api"
 import { useNavigate } from "react-router-dom"
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants"
 import "@/styles/RegistrationForm.css"
 
 function RegistrationForm({route}) {
@@ -117,4 +117,4 @@ function RegistrationForm({route}) {
     </form>
 }
 
-export default RegistrationForm
+export default RegistrationForm*/

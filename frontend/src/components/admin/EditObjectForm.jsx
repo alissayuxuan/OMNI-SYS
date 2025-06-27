@@ -1,48 +1,102 @@
 import { useState, useEffect } from 'react';
-import { useHospitalData } from '@/hooks/useHospitalData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
+import { manageHospitalData } from '@/hooks/manageHospitalData';
 
-export const EditObjectForm = ({ isOpen, onClose, object }) => {
-  const { updateObject, objects } = useHospitalData();
+export const EditObjectForm = ({ isOpen, onClose, object, refreshData, agents, spaces }) => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({});
+  const { updateAgent, updateContext, updateSpace } = manageHospitalData();
+  const [ isSaving, setIsSaving ] = useState(false);
+  const [agentForm, setAgentForm] = useState({ name: '' });
+  const [contextForm, setContextForm] = useState({
+    name: '',
+    time: '',
+    spaceId: 'none',
+    participantIds: [],
+  });
+  const [spaceForm, setSpaceForm] = useState({ name: '', capacity: 1 });
 
   useEffect(() => {
     if (object) {
-      setFormData({
-        name: object.name,
-        ...object.properties
-      });
+      if (object.type === "agent") {
+        setAgentForm({ name: object.name });
+      } else if (object.type === "context") {
+        const date = new Date(object.time);
+        const pad = (n) => String(n).padStart(2, '0');
+        const time = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        
+        setContextForm({
+          name: object.name,
+          time,
+          spaceId: object.spaceId,
+          participantIds: object.participantIds || [],
+        });
+      } else if (object.type === "space") {
+        setSpaceForm({
+          name: object.name,
+          capacity: object.capacity,
+        });
+      }
     }
   }, [object]);
 
-  const handleSave = () => {
-    if (!object) return;
-
-    const { name, ...properties } = formData;
-    
-    updateObject(object.id, {
-      name,
-      properties
-    });
-
-    toast({
-      title: "Success",
-      description: "Object updated successfully"
-    });
-
-    onClose();
-  };
-
   if (!object) return null;
 
-  const spaces = objects.filter(obj => obj.type === 'space');
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+
+      if (object.type === "agent") {
+        await updateAgent(object.id, { name: agentForm.name });
+      } else if (object.type === "context") {
+
+        const scheduled = new Date(contextForm.time).toISOString().split('.')[0] + 'Z';
+        const payload = {
+          name: contextForm.name,
+          scheduled,
+          agents: contextForm.participantIds,
+          space_id: contextForm.spaceId,
+          agent_ids: contextForm.participantIds,
+        }
+
+        await updateContext(object.id, payload);
+      } else if (object.type === "space") {
+        await updateSpace(object.id, {
+          name: spaceForm.name,
+          capacity: spaceForm.capacity,
+        });
+      }
+
+      toast({ title: "Success", description: "Object updated successfully" });
+    } catch (err) {
+      toast({ title: "Error", description: err.message , variant: 'destructive' });
+    } finally {
+      onClose();
+      refreshData();
+      setIsSaving(false);
+    }
+  };
+
+  const availableParticipants = agents.filter(agent => !contextForm.participantIds.includes(agent.id));
+
+  const addParticipant = (participantId) => {
+    if (participantId && !contextForm.participantIds.includes(participantId)) {
+      setContextForm(prev => ({ ...prev, participantIds: [...prev.participantIds, participantId] }));
+    }
+  };
+
+  const removeParticipant = (participantId) => {
+    setContextForm(prev => ({
+      ...prev,
+      participantIds: prev.participantIds.filter(id => id !== participantId),
+    }));
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -55,72 +109,43 @@ export const EditObjectForm = ({ isOpen, onClose, object }) => {
         </DialogHeader>
 
         <div className="space-y-4">
-          <div>
-            <Label htmlFor="edit-name">Name</Label>
-            <Input
-              id="edit-name"
-              value={formData.name || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder={object.name}
-            />
-          </div>
-
-          {/* Agent-specific fields */}
           {object.type === 'agent' && (
-            <>
-              <div>
-                <Label htmlFor="edit-username">Username</Label>
-                <Input
-                  id="edit-username"
-                  value={formData.username || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-password">Password</Label>
-                <Input
-                  id="edit-password"
-                  type="password"
-                  value={formData.password || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-agent-role">Role</Label>
-                <Input
-                  id="edit-agent-role"
-                  value={formData.agentRole || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, agentRole: e.target.value }))}
-                />
-              </div>
-            </>
+            <div>
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                value={agentForm.name || ''}
+                onChange={(e) => setAgentForm(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
           )}
 
-          {/* Context-specific fields */}
           {object.type === 'context' && (
             <>
               <div>
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  value={formData.description || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                <Label htmlFor="edit-name">Name</Label>
+                <Input
+                  id="edit-name"
+                  value={contextForm.name || ''}
+                  onChange={(e) => setContextForm(prev => ({ ...prev, name: e.target.value }))}
                 />
               </div>
+
               <div>
-                <Label htmlFor="edit-time">Time</Label>
+                <Label htmlFor="edit-time">Start Time</Label>
                 <Input
                   id="edit-time"
                   type="datetime-local"
-                  value={formData.time ? new Date(formData.time).toISOString().slice(0, 16) : ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+                  value={contextForm.time}
+                  onChange={(e) => setContextForm(prev => ({ ...prev, time: e.target.value }))}
                 />
               </div>
+
               <div>
                 <Label htmlFor="edit-space">Space</Label>
-                <Select 
-                  value={formData.spaceId || 'none'} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, spaceId: value === 'none' ? undefined : value }))}
+                <Select
+                  value={contextForm.spaceId || 'none'}
+                  onValueChange={(value) => setContextForm(prev => ({ ...prev, spaceId: value === 'none' ? undefined : value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a space" />
@@ -133,40 +158,74 @@ export const EditObjectForm = ({ isOpen, onClose, object }) => {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div>
+                <Label htmlFor="context-participants">Participants</Label>
+                <div className="space-y-2">
+                  <Select onValueChange={addParticipant}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Add participants" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableParticipants.map(participant => (
+                        <SelectItem key={participant.id} value={participant.id}>
+                          {participant.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex flex-wrap gap-2">
+                    {contextForm.participantIds.map(participantId => {
+                      const participant = agents.find(agent => agent.id === participantId);
+                      return participant ? (
+                        <Badge key={participantId} variant="secondary" className="flex items-center gap-1">
+                          {participant.name}
+                          <X
+                            className="h-3 w-3 cursor-pointer"
+                            onClick={() => removeParticipant(participantId)}
+                          />
+                        </Badge>
+                      ) : null;
+                    })}
+                  </div>
+                  {contextForm.participantIds.length === 0 && (
+                    <p className="text-sm text-muted-foreground">At least one participant is required</p>
+                  )}
+                </div>
+              </div>
             </>
           )}
 
-          {/* Space-specific fields */}
           {object.type === 'space' && (
-            <div>
-              <Label htmlFor="edit-extra-info">Extra Information</Label>
-              <Textarea
-                id="edit-extra-info"
-                value={formData.extraInfo || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, extraInfo: e.target.value }))}
-              />
-            </div>
-          )}
-
-          {/* Additional properties */}
-          {Object.entries(formData).map(([key, value]) => {
-            if (['name', 'category', 'username', 'password', 'agentRole', 'description', 'time', 'spaceId', 'extraInfo', 'participantIds'].includes(key)) {
-              return null;
-            }
-            return (
-              <div key={key}>
-                <Label htmlFor={`edit-${key}`}>{key}</Label>
+            <>
+              <div>
+                <Label htmlFor="space-name">Name</Label>
                 <Input
-                  id={`edit-${key}`}
-                  value={String(value) || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, [key]: e.target.value }))}
+                  id="space-name"
+                  value={spaceForm.name || ''}
+                  onChange={(e) => setSpaceForm(prev => ({ ...prev, name: e.target.value }))}
                 />
               </div>
-            );
-          })}
+              <div>
+                <Label htmlFor="space-capacity">Capacity</Label>
+                <Input
+                  id="space-capacity"
+                  type="number"
+                  min="1"
+                  max="1000"
+                  value={spaceForm.capacity}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSpaceForm(prev => ({ ...prev, capacity: value === '' ? '' : parseInt(value) }))}
+                  }
+                  placeholder="Enter space capacity"
+                />
+              </div>
+            </>
+          )}
 
-          <Button onClick={handleSave} className="w-full">
-            Save Changes
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </DialogContent>

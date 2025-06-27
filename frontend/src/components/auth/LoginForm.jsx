@@ -1,5 +1,4 @@
 import { useState } from 'react';
-//import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,13 +7,15 @@ import { toast } from '@/hooks/use-toast';
 import api from "@/api"
 import { useNavigate } from "react-router-dom"
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants"
+import { Eye, EyeOff } from 'lucide-react';
+
 
 function LoginForm({route}) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate()
-  //const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     setIsLoading(true);
@@ -23,7 +24,6 @@ function LoginForm({route}) {
     try {
         const payload = { username, password };
         const res = await api.post(route, payload)
-        console.log("res.data.role: ", res.data.role)
 
         if (res.status !== 200) {
             toast({
@@ -36,11 +36,9 @@ function LoginForm({route}) {
             localStorage.setItem(ACCESS_TOKEN, res.data.access);
             localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
             if (res.data.role === "admin") {
-              console.log("admin login")
               navigate("/admin-dashboard");
           } else {
               navigate("/agent-dashboard");
-              console.log("agent login")
           }
         }
 
@@ -48,38 +46,14 @@ function LoginForm({route}) {
     } catch (error){
         toast({
             title: 'Error',
-            description: 'An error occurred during login',
+            description: error.message,
             variant: 'destructive'
           });
     } finally {
         setIsLoading(false)
     }
  }
-  /*
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
 
-    try {
-      const success = await login(email, password);
-      if (!success) {
-        toast({
-          title: 'Login Failed',
-          description: 'Invalid email or password',
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'An error occurred during login',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  */
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">
@@ -100,16 +74,27 @@ function LoginForm({route}) {
                 required
               />
             </div>
-            <div className="space-y-2">
+            <div className="relative w-full space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-              />
+              <div className="relative w-full">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(prev => !prev)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+                </button>
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Signing in...' : 'Sign In'}

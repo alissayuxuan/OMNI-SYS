@@ -1,23 +1,19 @@
 import { useState } from 'react';
-import { useHospitalData } from '@/hooks/useHospitalData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { X } from 'lucide-react';
 import { manageHospitalData } from '@/hooks/manageHospitalData'
+import { Eye, EyeOff } from 'lucide-react';
 
 export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
   const {createAgent, createAdmin } = manageHospitalData();
   const { toast } = useToast();
 
-  //const [agents, setAgents] = useState([]);
-  const [loading, setLoading] = useState(false); // TODO
-
+  const [isCreating, setIsCreating] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form states for different object types
   const [agentForm, setAgentForm] = useState({
@@ -46,14 +42,11 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
 
 
   /* Create Objects */
-
   const handleCreateAgent = async (e) => {
-    setLoading(true);
+    setIsCreating(true);
     e.preventDefault();
     // TODO: name requirements check
-    console.log("handleCreateAgent")
     if (!agentForm.agent_name || !agentForm.username || !agentForm.password) {
-      console.log("agent_name: ", !agentForm.agent_name, "username: ", !agentForm.username, "password: ", !agentForm.password)
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -63,35 +56,33 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
     }
 
     try {
-      console.log("creating agent")
       const createdAgent = await createAgent(agentForm);
 
-      alert(`agent '${createdAgent.name}' created!`)
       toast({
         title: "Successful",
-        description: `Context '${createdAgent.name}' created.`,
+        description: `Agent was successfully created.`,
       });
-      console.log("Context created:", createdAgent)
-      refreshData(); //refresh Hospital Page
 
     } catch (error){
-      alert(error)
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
     } finally {
-      setLoading(false)
+      setIsCreating(false)
       resetForms();
       onClose();
-      setLoading(false);
+      refreshData(); //refresh Hospital Page
     }
   };
 
   const handleCreateAdmin = async (e) => {
-    setLoading(true);
+    setIsCreating(true);
     e.preventDefault();
     // TODO: name requirements check
-    console.log("handleCreateAdmin")
     if (!adminForm.username || !adminForm.password || !adminForm.first_name || !adminForm.last_name || !adminForm.email) {
 
-      console.log("Error: Please fill in all required fields")
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -101,24 +92,24 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
     }
 
     try {
-      console.log("creating admin")
-      const createdAdmin = await createAdmin(adminForm);
+      await createAdmin(adminForm);
 
-      alert(`admin '${createdAdmin}' created!`)
       toast({
         title: "Successful",
-        description: `admin '${createdAdmin}' created.`,
+        description: `Admin was successfully created.`,
       });
-      console.log("admin created:", createdAdmin)
-      refreshData(); //refresh User Page
-
     } catch (error){
-      alert(error)
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
     } finally {
-      setLoading(false)
       resetForms();
       onClose();
-      setLoading(false);
+      setIsCreating(false);
+      refreshData(); //refresh User Page
+
     }
   };
 
@@ -172,19 +163,54 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
               />
             </div>
             <div>
-              {/* TODO: generate password function */}
               <Label htmlFor="agent-password">Password *</Label>
-              <Input
-                id="agent-password"
-                type="password"
-                value={agentForm.password}
-                onChange={(e) => setAgentForm(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="Enter password"
-              />
+              <div className="flex items-center gap-2">
+                {/* Password input with eye icon */}
+                <div className="relative w-full">
+                  <Input
+                    id="agent-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={agentForm.password}
+                    onChange={(e) => setAgentForm(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="Enter or generate password"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                    tabIndex={-1} // avoid accidentally focusing
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                {/* Generate button */}
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+                    let generated = '';
+                    for (let i = 0; i < 10; i++) {
+                      generated += characters.charAt(Math.floor(Math.random() * characters.length));
+                    }
+                    setAgentForm(prev => ({ ...prev, password: generated }));
+                  }}
+                >
+                  Generate
+                </Button>
+              </div>
+
+              {/* Warning message */}
+              {agentForm.password && (
+                <p className="text-sm text-blue-600 mt-1">
+                  Please save the password securely, it will not be shown again.
+                </p>
+              )}
             </div>
             
-            <Button onClick={handleCreateAgent} className="w-full">
-              Create Agent
+            <Button onClick={handleCreateAgent} disabled={isCreating} className="w-full">
+              {isCreating ? "Creating..." : "Create Agent"}
             </Button>
           </TabsContent>
 
@@ -235,7 +261,6 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
               {nameError && <p className="text-red-500 text-sm">{nameError}</p>}
             </div>
             <div>
-              {/* TODO: generate password function */}
               <Label htmlFor="admin-email">E-Mail *</Label>
               <Input
                 id="admin-email"
@@ -255,19 +280,54 @@ export const CreateUserForms = ({ isOpen, onClose, refreshData }) => {
               />
             </div>
             <div>
-              {/* TODO: generate password function */}
-              <Label htmlFor="admin-password">Password *</Label>
-              <Input
-                id="admin-password"
-                type="password"
-                value={adminForm.password}
-                onChange={(e) => setAdminForm(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="Enter password"
-              />
+              <Label htmlFor="agent-password">Password *</Label>
+              <div className="flex items-center gap-2">
+                {/* Password input with eye icon */}
+                <div className="relative w-full">
+                  <Input
+                    id="agent-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={adminForm.password}
+                    onChange={(e) => setAdminForm(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="Enter or generate password"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                    tabIndex={-1} // avoid accidentally focusing
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                {/* Generate button */}
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+                    let generated = '';
+                    for (let i = 0; i < 10; i++) {
+                      generated += characters.charAt(Math.floor(Math.random() * characters.length));
+                    }
+                    setAdminForm(prev => ({ ...prev, password: generated }));
+                  }}
+                >
+                  Generate
+                </Button>
+              </div>
+
+              {/* Warning message */}
+              {adminForm.password && (
+                <p className="text-sm text-blue-600 mt-1">
+                  Please save the password securely, it will not be shown again.
+                </p>
+              )}
             </div>
             
-            <Button onClick={handleCreateAdmin} className="w-full">
-              Create Admin
+            <Button onClick={handleCreateAdmin} disabled={isCreating} className="w-full">
+              {isCreating ? "Creating..." : "Create Admin"}
             </Button>
           </TabsContent>
           

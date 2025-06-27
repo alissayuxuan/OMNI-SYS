@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, RotateCcw } from 'lucide-react';
+import { Search, Filter, RotateCcw, X } from 'lucide-react';
 
 export const GraphVisualization = ({ objects = [], relationships = [] }) => {
   const svgRef = useRef(null);
@@ -33,8 +33,7 @@ export const GraphVisualization = ({ objects = [], relationships = [] }) => {
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(obj => 
-        obj.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (obj.category && obj.category.toLowerCase().includes(searchTerm.toLowerCase()))
+        obj.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -52,6 +51,8 @@ export const GraphVisualization = ({ objects = [], relationships = [] }) => {
     setSearchTerm('');
     setTypeFilter('all');
     setSelectedNode(null);
+    setFilteredObjects(objects);
+    setFilteredRelationships(relationships);
   };
 
   const focusOnObject = (objectId) => {
@@ -102,7 +103,6 @@ export const GraphVisualization = ({ objects = [], relationships = [] }) => {
       id: obj.id,
       name: obj.name || 'Unnamed',
       type: obj.type,
-      category: obj.category,
       properties: obj.properties,
       x: Math.random() * (width - 2 * margin.left),
       y: Math.random() * (height - 2 * margin.top)
@@ -358,21 +358,33 @@ export const GraphVisualization = ({ objects = [], relationships = [] }) => {
 
         {/* Selected Node Details */}
         {selectedNode && (
-          <Card className="w-80">
+          <Card className="w-80 relative">
+            {/* X Button in top-right */}
+            <button
+              onClick={() => setSelectedNode(null)}
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+            >
+              <X size={18} strokeWidth={2.5} />
+            </button>
+
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <div 
                   className="w-3 h-3 rounded-full"
                   style={{ 
                     backgroundColor: selectedNode.type === 'agent' ? '#3b82f6' : 
-                                   selectedNode.type === 'context' ? '#10b981' : '#8b5cf6' 
+                                  selectedNode.type === 'context' ? '#10b981' : '#8b5cf6' 
                   }}
                 />
                 <span>{selectedNode.name || 'Unnamed'}</span>
               </CardTitle>
               <CardDescription>
                 <Badge>{selectedNode.type}</Badge>
-                <Badge variant="outline" className="ml-2">{selectedNode.category || 'No category'}</Badge>
+                {selectedNode.category && (
+                  <Badge variant="outline" className="ml-2">
+                    {selectedNode.category}
+                  </Badge>
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -1,4 +1,5 @@
-import { useHospitalData } from '@/hooks/useHospitalData';
+import { useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/layout/Header';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { ObjectManagement } from '@/components/admin/ObjectManagement';
@@ -6,24 +7,140 @@ import { ProfileSettings } from '@/components/settings/ProfileSettings';
 import { GraphVisualization } from '@/components/graph/GraphVisualization';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Database, Network, BarChart3, Building, CalendarDays} from 'lucide-react';
-
-import { useContext } from "react";
-import { UserContext } from "@/components/auth/ProtectedRoute";
+import { Users, Database, Network, Building, CalendarDays} from 'lucide-react';
+import { RelationshipManagement } from '@/components/admin/RelationshipManagement';
+import { manageHospitalData } from '../hooks/manageHospitalData';
 
 export const AdminDashboard = () => {
-  const { objects, relationships } = useHospitalData(false);
-
-  const user = useContext(UserContext);
+  const { getAgents, getSpaces, getContexts, getRelationships } = manageHospitalData();
 
 
-  const stats = {
-    totalObjects: objects.length,
-    agents: objects.filter(obj => obj.type === 'agent').length,
-    contexts: objects.filter(obj => obj.type === 'context').length,
-    spaces: objects.filter(obj => obj.type === 'space').length,
-    relationships: relationships.length
-  };
+  const queryClient = useQueryClient();
+  const { data: agentsRes = { results: [] }, isLoading: loadingAgents } = useQuery({
+    queryKey: ['agents'], 
+    queryFn: getAgents,
+    refetchInterval: 60 * 1000, // refresh every 60s
+    refetchIntervalInBackground: false // no refresh in background
+  });
+  const { data: contextsRes = { results: [] }, isLoading: loadingContexts } = useQuery({ 
+    queryKey: ['contexts'],
+    queryFn: getContexts,
+    refetchInterval: 60 * 1000, 
+    refetchIntervalInBackground: false 
+  });
+  const { data: spacesRes = { results: [] }, isLoading: loadingSpaces } = useQuery({ 
+    queryKey: ['spaces'], 
+    queryFn: getSpaces,
+    refetchInterval: 60 * 1000, 
+    refetchIntervalInBackground: false 
+  });
+  const { data: relationshipsRes = { results: [] }, isLoading: loadingRelationships } = useQuery({ 
+    queryKey: ['relationships'], 
+    queryFn: getRelationships,
+    refetchInterval: 60 * 1000,
+    refetchIntervalInBackground: false
+  });
+
+
+  /* Stats */
+  const stats = useMemo(() => {
+    const agentCount = agentsRes?.results?.length || 0;
+    const contextCount = contextsRes?.results?.length || 0;
+    const spaceCount = spacesRes?.results?.length || 0;
+    const relationshipCount = relationshipsRes?.results?.length || 0; // fallback if undefined
+  
+    return {
+      agents: agentCount,
+      contexts: contextCount,
+      spaces: spaceCount,
+      relationships: relationshipCount,
+      totalObjects: agentCount + contextCount + spaceCount
+    };
+  }, [agentsRes, contextsRes, spacesRes, relationshipsRes]);
+
+
+  /* Objects and Relationships for Graph Visualization */
+  const agents = useMemo(() => agentsRes.results.map(agent => ({
+    id: "agent-" + agent.id,
+    name: agent.name,
+    type: "agent",
+    createdAt: agent.created_at,
+    properties: {
+      
+    },
+  })), [agentsRes]);
+
+  const contexts = useMemo(() => contextsRes.results.map(context => ({
+    id: "context-" + context.id,
+    name: context.name,
+    type: "context",
+    createdAt : context.created_at,
+    properties: {
+      time: context.scheduled,
+      paticipants: context.agents_detail.map(agent => agent.name),
+      space: context.space_detail.name
+    },
+  })), [contextsRes]);
+
+  
+  const spaces = useMemo(() => spacesRes.results.map(space => ({
+    id: "space-" + space.id,
+    name: space.name,
+    type: "space",
+    createdAt: space.created_at,
+    properties: {
+      capacity: space.capacity,
+    },
+  })), [spacesRes]);
+
+  const objects = useMemo(() => {
+    return [
+      ...agents,   
+      ...contexts,
+      ...spaces
+    ];
+  }, [agents, contexts, spaces]);
+
+
+  const relationships = useMemo(() => {
+    const rels = [];
+  
+    // Relationships from context → agents / spaces
+    for (const context of contextsRes.results) {
+      // Agent → Context
+      for (const agentId of context.agents || []) {
+        rels.push({
+          fromObjectId: "agent-" + agentId,
+          toObjectId: "context-" + context.id,
+          relationshipType: "participates_in",
+        });
+      }
+  
+      // Space → Context
+      if (context.space) {
+        rels.push({
+          fromObjectId: "space-" + context.space,
+          toObjectId: "context-" + context.id,
+          relationshipType: "assigned_space",
+        });
+      }
+    }
+  
+    // Explicit agent ↔ agent relationships from backend
+    const backendRelationships = (relationshipsRes?.results || []).map(rel => ({
+      id: "relationship" + rel.id,
+      fromObjectId: "agent-" + rel.agent_from,
+      toObjectId: "agent-" + rel.agent_to,
+      relationshipType: rel.description || 'related',
+    }));
+  
+    return [...rels, ...backendRelationships];
+  }, [contextsRes, relationshipsRes]);
+  
+  
+
+  
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -97,13 +214,18 @@ export const AdminDashboard = () => {
         <Tabs defaultValue="objects" className="space-y-6">
           <TabsList>
             <TabsTrigger value="objects">Object Management</TabsTrigger>
+            <TabsTrigger value="relationships">Relationship Management</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="graph">System Graph</TabsTrigger>
             <TabsTrigger value="settings">Profile Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="objects">
-            <ObjectManagement />
+            <ObjectManagement/>
+          </TabsContent>
+
+          <TabsContent value="relationships">
+            <RelationshipManagement />
           </TabsContent>
 
           <TabsContent value="users">

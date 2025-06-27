@@ -62,7 +62,8 @@ INSTALLED_APPS = [
     "corsheaders",
     #"api",
     'api.apps.ApiConfig',
-    "users",
+    #"users",
+    "users.apps.UsersConfig",
     "django_filters"
 ]
 

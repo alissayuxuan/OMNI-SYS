@@ -1,21 +1,202 @@
 import { Header } from '@/components/layout/Header';
 import { ProfileSettings } from '@/components/settings/ProfileSettings';
 import { GraphVisualization } from '@/components/graph/GraphVisualization';
-import { useHospitalData } from '@/hooks/useHospitalData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Database, Network, CalendarDays, Building } from 'lucide-react';
+import { manageHospitalData } from '../hooks/manageHospitalData';
+import { useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const AgentDashboard = () => {
-  const { objects, relationships } = useHospitalData(true);
 
-  const stats = {
-    totalObjects: objects.length,
-    agents: objects.filter(obj => obj.type === 'agent').length,
-    contexts: objects.filter(obj => obj.type === 'context').length,
-    spaces: objects.filter(obj => obj.type === 'space').length,
-    relationships: relationships.length
+  const { getProfile, getAgents, getSpaces, getContexts, getRelationships } = manageHospitalData();
+
+  const queryClient = useQueryClient();
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['profile'],
+    queryFn: getProfile,
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  const { data: agentsRes = { results: [] }, isLoading: loadingAgents } = useQuery({ 
+    queryKey: ['agents'], 
+    queryFn: getAgents,
+    refetchInterval: 60 * 1000, // refresh every 60s
+    refetchIntervalInBackground: false // no refresh in background
+  });
+  const { data: contextsRes = { results: [] }, isLoading: loadingContexts } = useQuery({ 
+    queryKey: ['contexts'], 
+    queryFn: getContexts,
+    refetchInterval: 60 * 1000, 
+    refetchIntervalInBackground: false 
+  });
+  const { data: spacesRes = { results: [] }, isLoading: loadingSpaces } = useQuery({ 
+    queryKey: ['spaces'], 
+    queryFn: getSpaces,
+    refetchInterval: 60 * 1000, 
+    refetchIntervalInBackground: false
+  });
+  const { data: relationshipsRes = { results: [] }, isLoading: loadingRelationships } = useQuery({ 
+    queryKey: ['relationships'], 
+    queryFn: getRelationships,
+    refetchInterval: 60 * 1000, 
+    refetchIntervalInBackground: false
+  });
+
+
+  /* Stats */
+  const stats = useMemo(() => {
+    const agentCount = agentsRes?.results?.length || 0;
+    const contextCount = contextsRes?.results?.length || 0;
+    const spaceCount = spacesRes?.results?.length || 0;
+    const relationshipCount = relationshipsRes?.results?.length || 0; // fallback if undefined
+  
+    return {
+      agents: agentCount,
+      contexts: contextCount,
+      spaces: spaceCount,
+      relationships: relationshipCount,
+      totalObjects: agentCount + contextCount + spaceCount
+    };
+  }, [agentsRes, contextsRes, spacesRes, relationshipsRes]);
+  
+  /* Objects and Relationships for Graph Visualization */
+  //filter for connectong objects of certain agent
+  const getConnectedObjects = (targetAgentId, allRelationships) => {
+    const connectedObjectIds = new Set([`agent-${targetAgentId}`]);
+    const processedRelationships = new Set();
+    
+    let foundNew = true;
+    while (foundNew) {
+      foundNew = false;
+      
+      for (const rel of allRelationships) {
+        const relKey = `${rel.fromObjectId}-${rel.toObjectId}-${rel.relationshipType}`;
+        if (processedRelationships.has(relKey)) continue;
+        
+        if (connectedObjectIds.has(rel.fromObjectId)) {
+          if (!connectedObjectIds.has(rel.toObjectId)) {
+            connectedObjectIds.add(rel.toObjectId);
+            foundNew = true;
+          }
+          processedRelationships.add(relKey);
+        }
+        
+        if (connectedObjectIds.has(rel.toObjectId)) {
+          if (!connectedObjectIds.has(rel.fromObjectId)) {
+            connectedObjectIds.add(rel.fromObjectId);
+            foundNew = true;
+          }
+          processedRelationships.add(relKey);
+        }
+      }
+    }
+    
+    return connectedObjectIds;
   };
+
+  const agents = useMemo(() => agentsRes.results.map(agent => ({
+    id: "agent-" + agent.id,
+    name: agent.name,
+    type: "agent",
+    createdAt: agent.created_at,
+    properties: {},
+  })), [agentsRes]);
+
+  const contexts = useMemo(() => contextsRes.results.map(context => ({
+    id: "context-" + context.id,
+    name: context.name,
+    type: "context",
+    createdAt: context.created_at,
+    properties: {
+      time: context.scheduled,
+      paticipants: context.agents_detail.map(agent => agent.name),
+      space: context.space_detail.name
+    },
+  })), [contextsRes]);
+
+  const spaces = useMemo(() => spacesRes.results.map(space => ({
+    id: "space-" + space.id,
+    name: space.name,
+    type: "space",
+    createdAt: space.created_at,
+    properties: {
+      capacity: space.capacity,
+    },
+  })), [spacesRes]);
+
+  const allRelationships = useMemo(() => {
+    const rels = [];
+
+    // Relationships from context → agents / spaces
+    for (const context of contextsRes.results) {
+      // Agent → Context
+      for (const agentId of context.agents || []) {
+        rels.push({
+          fromObjectId: "agent-" + agentId,
+          toObjectId: "context-" + context.id,
+          relationshipType: "participates_in",
+        });
+      }
+
+      // Space → Context
+      if (context.space) {
+        rels.push({
+          fromObjectId: "space-" + context.space,
+          toObjectId: "context-" + context.id,
+          relationshipType: "assigned_space",
+        });
+      }
+    }
+
+    // Explicit agent ↔ agent relationships from backend
+    const backendRelationships = (relationshipsRes?.results || []).map(rel => ({
+      id: "relationship" + rel.id,
+      fromObjectId: "agent-" + rel.agent_from,
+      toObjectId: "agent-" + rel.agent_to,
+      relationshipType: rel.description || 'related',
+    }));
+
+    return [...rels, ...backendRelationships];
+  }, [contextsRes, relationshipsRes]);
+
+  // filtered Obejcts and Relationships
+  const getFilteredData = (targetAgentId) => {
+    if (!targetAgentId) {
+      return {
+        objects: [...agents, ...contexts, ...spaces],
+        relationships: allRelationships
+      };
+    }
+
+    const connectedObjectIds = getConnectedObjects(targetAgentId, allRelationships);
+    
+    const filteredObjects = [
+      ...agents.filter(agent => connectedObjectIds.has(agent.id)),
+      ...contexts.filter(context => connectedObjectIds.has(context.id)),
+      ...spaces.filter(space => connectedObjectIds.has(space.id))
+    ];
+    
+    const filteredRelationships = allRelationships.filter(rel => 
+      connectedObjectIds.has(rel.fromObjectId) && 
+      connectedObjectIds.has(rel.toObjectId)
+    );
+    
+    return {
+      objects: filteredObjects,
+      relationships: filteredRelationships
+    };
+  };
+
+
+  const targetAgentId = profile?.agent_object?.id;
+  const { objects: filteredObjects, relationships: filteredRelationships } = useMemo(() => 
+    getFilteredData(targetAgentId), 
+    [targetAgentId, agents, contexts, spaces, allRelationships]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -99,7 +280,7 @@ export const AgentDashboard = () => {
                 <CardDescription>Visual representation of all objects and their relationships with filtering and search</CardDescription>
               </CardHeader>
               <CardContent>
-                <GraphVisualization objects={objects} relationships={relationships} />
+                <GraphVisualization objects={filteredObjects} relationships={filteredRelationships} />
               </CardContent>
             </Card>
           </TabsContent>

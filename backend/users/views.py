@@ -1,124 +1,142 @@
-from django.shortcuts import render
-
-# Create your views here.
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
-from .models import CustomUser, AdminProfile, AgentProfile
-from .serializers import (
-    RegisterUserSerializer, CustomTokenRefreshSerializer, CustomTokenObtainPairSerializer, 
-    CustomUserSerializer, AgentProfileSerializer, AdminProfileSerializer
-)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
-from django.shortcuts import get_object_or_404
 
+from .models import CustomUser, AdminProfile, AgentProfile
+from .serializers import (
+    RegisterUserSerializer, CustomTokenRefreshSerializer, CustomTokenObtainPairSerializer, 
+    CustomUserSerializer, AgentProfileSerializer, AdminProfileSerializer,
+    AdminProfileUpdateSerializer, AgentProfileUpdateSerializer,
+    PasswordChangeSerializer
+)
 
+from api.views import handle_api_error  # or adjust path if moved
 
-# only logged in admins can enter certain views (eg. register new users)
+# Only logged-in admins can access certain views
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == 'admin'
 
-# register new users
+
 class RegisterUserView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
     def post(self, request):
-        serializer = RegisterUserSerializer(data=request.data)
-        if serializer.is_valid():
+        try:
+            serializer = RegisterUserSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response({'message': 'User registered successfully'})
-        return Response(serializer.errors, status=400)
+        except Exception as e:
+            return handle_api_error(e)
 
 
-# Custom Token Refresh View to include user role
 class CustomTokenRefreshView(TokenRefreshView):
     serializer_class = CustomTokenRefreshSerializer
 
 
-# Custom Token Obtain Pair View to include user role
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
-# GET, PUT, DELETE api calls on CustomUser
 class UserList(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
     def get(self, request):
-        role = request.query_params.get('role')
-        users = CustomUser.objects.filter(role=role) if role else CustomUser.objects.all()
-        serializer = CustomUserSerializer(users, many=True)
-        return Response(serializer.data)
+        try:
+            role = request.query_params.get('role')
+            users = CustomUser.objects.filter(role=role) if role else CustomUser.objects.all()
+            serializer = CustomUserSerializer(users, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return handle_api_error(e)
+
 
 class UserDetail(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
     def get(self, request, user_id):
-        user = get_object_or_404(CustomUser, id=user_id)
-        serializer = CustomUserSerializer(user)
-        return Response(serializer.data)
+        try:
+            user = get_object_or_404(CustomUser, id=user_id)
+            serializer = CustomUserSerializer(user)
+            return Response(serializer.data)
+        except Exception as e:
+            return handle_api_error(e)
 
     def put(self, request, user_id):
-        user = get_object_or_404(CustomUser, id=user_id)
-        serializer = CustomUserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
+        try:
+            user = get_object_or_404(CustomUser, id=user_id)
+            serializer = CustomUserSerializer(user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return handle_api_error(e)
 
     def delete(self, request, user_id):
-        user = get_object_or_404(CustomUser, id=user_id)
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    
+        try:
+            user = get_object_or_404(CustomUser, id=user_id)
+            user.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return handle_api_error(e)
+
 
 class AgentProfileList(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
     def get(self, request):
-        agents = AgentProfile.objects.all()
-        serializer = AgentProfileSerializer(agents, many=True)
-        return Response(serializer.data)
+        try:
+            agents = AgentProfile.objects.all()
+            serializer = AgentProfileSerializer(agents, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return handle_api_error(e)
+
 
 class AgentProfileDetail(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, pk):
         try:
             profile = AgentProfile.objects.get(pk=pk)
             serializer = AgentProfileSerializer(profile)
             return Response(serializer.data)
-        except AgentProfile.DoesNotExist:
-            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return handle_api_error(e)
 
     def put(self, request, pk):
         try:
             profile = AgentProfile.objects.get(pk=pk)
-        except AgentProfile.DoesNotExist:
-            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = AgentProfileSerializer(profile, data=request.data, partial=True)
-        if serializer.is_valid():
+            serializer = AgentProfileSerializer(profile, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return handle_api_error(e)
 
     def delete(self, request, pk):
         try:
             profile = AgentProfile.objects.get(pk=pk)
             profile.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except AgentProfile.DoesNotExist:
-            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return handle_api_error(e)
 
-# AdminProfile views (same structure)
+
 class AdminProfileList(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
     def get(self, request):
-        admins = AdminProfile.objects.all()
-        serializer = AdminProfileSerializer(admins, many=True)
-        return Response(serializer.data)
+        try:
+            admins = AdminProfile.objects.all()
+            serializer = AdminProfileSerializer(admins, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return handle_api_error(e)
+
 
 class AdminProfileDetail(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
@@ -128,24 +146,73 @@ class AdminProfileDetail(APIView):
             profile = AdminProfile.objects.get(pk=pk)
             serializer = AdminProfileSerializer(profile)
             return Response(serializer.data)
-        except AdminProfile.DoesNotExist:
-            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return handle_api_error(e)
 
     def put(self, request, pk):
         try:
             profile = AdminProfile.objects.get(pk=pk)
-        except AdminProfile.DoesNotExist:
-            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = AdminProfileSerializer(profile, data=request.data, partial=True)
-        if serializer.is_valid():
+            serializer = AdminProfileSerializer(profile, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return handle_api_error(e)
 
     def delete(self, request, pk):
         try:
             profile = AdminProfile.objects.get(pk=pk)
             profile.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except AdminProfile.DoesNotExist:
-            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return handle_api_error(e)
+
+
+class UserProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            if user.role == 'admin':
+                profile = AdminProfile.objects.get(user=user)
+                serializer = AdminProfileSerializer(profile)
+            elif user.role == 'agent':
+                profile = AgentProfile.objects.get(user=user)
+                serializer = AgentProfileSerializer(profile)
+            else:
+                return Response({'detail': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data)
+        except Exception as e:
+            return handle_api_error(e)
+
+    def put(self, request):
+        try:
+            user = request.user
+            if user.role == 'admin':
+                profile = AdminProfile.objects.get(user=user)
+                serializer = AdminProfileUpdateSerializer(profile, data=request.data, partial=True)
+            elif user.role == 'agent':
+                profile = AgentProfile.objects.get(user=user)
+                serializer = AgentProfileUpdateSerializer(profile, data=request.data, partial=True)
+            else:
+                return Response({'detail': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response({'detail': 'Profile updated successfully'})
+        except Exception as e:
+            return handle_api_error(e)
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            serializer = PasswordChangeSerializer(data=request.data, context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response({'detail': 'Password updated successfully'})
+        except Exception as e:
+            return handle_api_error(e)

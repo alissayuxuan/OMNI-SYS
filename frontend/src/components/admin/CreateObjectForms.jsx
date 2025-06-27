@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useHospitalData } from '@/hooks/useHospitalData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,17 +7,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { X } from 'lucide-react';
+import { X, Eye, EyeOff } from 'lucide-react';
 import { manageHospitalData } from '@/hooks/manageHospitalData'
 
 export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces }) => {
   const {createAgent, createContext, createSpace } = manageHospitalData();
-  //const { createObject, objects } = useHospitalData();
   const { toast } = useToast();
 
-  //const [agents, setAgents] = useState([]);
-  const [loading, setLoading] = useState(false); // TODO
-
+  const [isCreating, setIsCreating] = useState(false); 
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form states for different object types
   const [agentForm, setAgentForm] = useState({
@@ -52,12 +49,10 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
   /* Create Objects */
 
   const handleCreateAgent = async (e) => {
-    setLoading(true);
+    setIsCreating(true);
     e.preventDefault();
     // TODO: name requirements check
-    console.log("handleCreateAgent")
     if (!agentForm.agent_name || !agentForm.username || !agentForm.password) {
-      console.log("agent_name: ", !agentForm.agent_name, "username: ", !agentForm.username, "password: ", !agentForm.password)
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -67,115 +62,105 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
     }
 
     try {
-      console.log("creating agent")
-      const createdAgent = await createAgent(agentForm);
+      await createAgent(agentForm);
 
-      alert(`agent '${createdAgent.name}' created!`)
       toast({
         title: "Successful",
-        description: `Context '${createdAgent.name}' created.`,
+        description: `Agent sucessfully created.`,
       });
-      console.log("Context created:", createdAgent)
       refreshData(); //refresh Hospital Page
 
     } catch (error){
-      alert(error)
+      toast({
+        title: "Error",
+        description: error.message || "An error occurred while creating the agent",
+        variant: "destructive"
+      });      
     } finally {
-      setLoading(false)
       resetForms();
       onClose();
-      setLoading(false);
+      setIsCreating(false);
     }
   };
 
   const handleCreateContext = async (e) => {
-    setLoading(true);
+    setIsCreating(true);
     e.preventDefault();
-    console.log("contextForm: ", contextForm)
-    console.log("spaceID: ", contextForm.spaceId)
-    console.log("participants: ", contextForm.participantIds)
     
-    if (!contextForm.name || !contextForm.time || !contextForm.spaceId || !contextForm.participantIds) {
+    if (!contextForm.name || !contextForm.time || !contextForm.participantIds) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
         variant: "destructive"
       });
+      setIsCreating(false);
       return;
     }
 
     try {  
-      // Umwandlung datetime-local in ISO string mit 'Z'
-      const scheduled = new Date(contextForm.time).toISOString().split('.')[0] + 'Z';//new Date(contextForm.time).toISOString();
-  
+      // Transform datetime-local in ISO string with 'Z'
+      const scheduled = new Date(contextForm.time).toISOString().split('.')[0] + 'Z';
+
       const payload = {
         name: contextForm.name.trim(),
         scheduled,
-        space_id: Number(contextForm.spaceId),
+        agents:  contextForm.participantIds.map(id => Number(id)),
         agent_ids: contextForm.participantIds.map(id => Number(id)),
+        ...(contextForm.spaceId !== 'none' && { space_id: Number(contextForm.spaceId) })
       };
 
-      console.log("payload: \n", payload)
-  
       const createdContext = await createContext(payload);
 
-      alert(`context '${createdContext.name}' created!`)
       toast({
         title: "Successful",
-        description: `Context '${createdContext.name}' created.`,
+        description: `Context successfully created.`,
       });
-      console.log("Context created:", createdContext);
-      refreshData();
     } catch (err) {
-      console.error("Error:", err);
-      alert("An error occured");
       toast({
         title: "Error",
-        description: "An error occured"
+        description: err.message || "An error occurred while creating the context",
+        variant: "destructive"
       });
     } finally {
+      refreshData();
       resetForms();
       onClose();
-      setLoading(false);
+      setIsCreating(false);
     }
   };
 
   const handleCreateSpace = async(e) => {
-    console.log("handleCreateSpace")
-    setLoading(true);
+    setIsCreating(true);
     e.preventDefault();
 
     if (!spaceForm.name || !spaceForm.capacity) {
       toast({
         title: "Error",
-        description: "Please enter a space name",
+        description: "Please enter all required fields",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      const createdSpace = await createSpace(spaceForm);
+      await createSpace(spaceForm);
 
-      alert(`space '${createdSpace.name}' created!`)
       toast({
         title: "Successful",
-        description: `Space '${createdSpace.name}' created.`,
+        description: `Space sucessfully created.`,
       });
-      console.log("space created: ", createdSpace)
-      refreshData();
   
     } catch (err) {
-      console.error("Error:", err);
-      alert("An error occured!");
       toast({
         title: "Error",
-        description: "An error occured"
+        description: err.message || "An error occurred while creating the space",
+        variant: "destructive"
       });
     } finally {
+      refreshData();
       resetForms();
       onClose();
-      setLoading(false);
+      setIsCreating(false);
     }
   };
 
@@ -220,12 +205,6 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
           <TabsContent value="agent" className="space-y-4">
             <div>
               <Label htmlFor="agent-name">Name *</Label>
-              {/*<Input
-                id="agent-name"
-                value={agentForm.agent_name}
-                onChange={(e) => setAgentForm(prev => ({ ...prev, agent_name: e.target.value }))}
-                placeholder="Enter agent name"
-              />*/}
               <Input
                 id="agent-name"
                 value={agentForm.agent_name}
@@ -256,19 +235,53 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
               />
             </div>
             <div>
-              {/* TODO: generate password function */}
               <Label htmlFor="agent-password">Password *</Label>
-              <Input
-                id="agent-password"
-                type="password"
-                value={agentForm.password}
-                onChange={(e) => setAgentForm(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="Enter password"
-              />
-            </div>
-            
-            <Button onClick={handleCreateAgent} className="w-full">
-              Create Agent
+              <div className="flex items-center gap-2">
+                {/* Password input with eye icon */}
+                <div className="relative w-full">
+                  <Input
+                    id="agent-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={agentForm.password}
+                    onChange={(e) => setAgentForm(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="Enter or generate password"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                    tabIndex={-1} // avoid accidentally focusing
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                {/* Generate button */}
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+                    let generated = '';
+                    for (let i = 0; i < 15; i++) {
+                      generated += characters.charAt(Math.floor(Math.random() * characters.length));
+                    }
+                    setAgentForm(prev => ({ ...prev, password: generated }));
+                  }}
+                >
+                  Generate
+                </Button>
+              </div>
+
+              {/* Warning message */}
+              {agentForm.password && (
+                <p className="text-sm text-blue-600 mt-1">
+                  Please save the password securely, it will not be shown again.
+                </p>
+              )}
+            </div>            
+            <Button onClick={handleCreateAgent} disabled={isCreating} className="w-full">
+              {isCreating ? 'Creating...' : 'Create Agent'}
             </Button>
           </TabsContent>
 
@@ -284,7 +297,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
               />
             </div>
             <div>
-              <Label htmlFor="context-time">Time *</Label>
+              <Label htmlFor="context-time">Start Time *</Label>
               <Input
                 id="context-time"
                 type="datetime-local"
@@ -292,6 +305,7 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
                 onChange={(e) => setContextForm(prev => ({ ...prev, time: e.target.value }))}
               />
             </div>
+            
             <div>
               <Label htmlFor="context-space">Space</Label>
               <Select value={contextForm.spaceId} onValueChange={(value) => setContextForm(prev => ({ ...prev, spaceId: value }))}>
@@ -342,8 +356,8 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
               </div>
             </div>
 
-            <Button onClick={handleCreateContext} className="w-full">
-              Create Context
+            <Button onClick={handleCreateContext} disabled={isCreating} className="w-full">
+              {isCreating ? 'Creating...' : 'Create Context'}
             </Button>
           </TabsContent>
 
@@ -372,8 +386,8 @@ export const CreateObjectForms = ({ isOpen, onClose, refreshData, agents, spaces
                 placeholder="Enter space capacity"
               />
             </div>
-            <Button onClick={handleCreateSpace} className="w-full">
-              Create Space
+            <Button onClick={handleCreateSpace} disabled={isCreating} className="w-full">
+              {isCreating ? 'Creating...' : 'Create Space'}
             </Button>
           </TabsContent>
         </Tabs>
