@@ -1,3 +1,42 @@
+/**
+ * CreateObjectForms – React Component
+ *
+ * A dynamic modal component for creating new entities in a hospital system:
+ * - Agents (users with authentication)
+ * - Contexts (scheduled events with participants and optional space)
+ * - Spaces (rooms with a capacity)
+ *
+ * Features:
+ * - Uses tabs to switch between different creation forms (Agent, Context, Space).
+ * - Handles input validation, submission feedback, and error handling via toasts.
+ * - Generates secure random passwords for agents (optional).
+ * - Uses controlled form states and resets on close or after creation.
+ * - Provides inline form validation and user feedback.
+ *
+ * Props:
+ * - `isOpen` (boolean): Whether the dialog is open.
+ * - `onClose` (function): Function to close the dialog.
+ * - `refreshData` (function): Callback to trigger a data refresh after successful creation.
+ * - `agents` (array): List of available agents (used in context participant selection).
+ * - `spaces` (array): List of available spaces (used in context form).
+ *
+ * Dependencies:
+ * - `manageHospitalData()` for API interaction (createAgent, createContext, createSpace)
+ * - `useToast()` for toast notifications
+ * - Custom UI components (Dialog, Tabs, Input, Button, etc.)
+ *
+ * Example:
+ * <CreateObjectForms
+ *   isOpen={modalOpen}
+ *   onClose={() => setModalOpen(false)}
+ *   refreshData={loadData}
+ *   agents={agentList}
+ *   spaces={spaceList}
+ * />
+ */
+
+
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

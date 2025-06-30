@@ -1,3 +1,31 @@
+/**
+ * LoginForm – React Component
+ *
+ * A reusable login form component for authenticating users into the OMNI-SYS system.
+ * Supports both admin and agent login routes via a dynamic `route` prop.
+ *
+ * Features:
+ * - Accepts username and password input with password visibility toggle.
+ * - Sends login credentials to the backend and handles response tokens.
+ * - Stores `access` and `refresh` tokens in localStorage.
+ * - Redirects user to their respective dashboard based on role.
+ * - Displays user feedback via toast notifications on success or failure.
+ * - Shows loading state during authentication request.
+ *
+ * Props:
+ * - `route` (string): The API endpoint to send login credentials to.
+ *
+ * Dependencies:
+ * - `@/api`: Axios instance for making HTTP requests.
+ * - `@/hooks/use-toast`: Custom hook for displaying toast notifications.
+ * - `react-router-dom`: For navigation after successful login.
+ * - `ACCESS_TOKEN`, `REFRESH_TOKEN` constants for localStorage keys.
+ *
+ * Example usage:
+ * <LoginForm route="/api/auth/token/" />
+ */
+
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

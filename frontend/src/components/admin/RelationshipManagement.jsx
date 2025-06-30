@@ -1,3 +1,34 @@
+/**
+ * RelationshipManagement – React Component
+ *
+ * A user interface for managing relationships between agents in the hospital system.
+ * Supports viewing, searching, creating, editing, and deleting agent relationships.
+ * Data is managed and synchronized using React Query and a centralized API handler (`manageHospitalData`).
+ *
+ * Features:
+ * - Fetches relationships and agent data via `useQuery`.
+ * - Displays relationships in a searchable table.
+ * - Provides modals for creating or editing relationships via `RelationshipForm`.
+ * - Allows relationship deletion with confirmation dialogs.
+ * - Regularly refetches data every 60 seconds for live updates.
+ *
+ * State:
+ * - `searchTerm`: Filters relationships by agent names or description.
+ * - `confirmDialog`: Controls the delete confirmation dialog.
+ * - `isFormOpen`: Controls the visibility of the relationship form modal.
+ * - `editingObject`: Stores relationship object currently being edited.
+ * - `actionMode`: Indicates whether the form is in 'create' or 'edit' mode.
+ *
+ * Dependencies:
+ * - `useQuery` / `useQueryClient` from React Query for data fetching and invalidation.
+ * - `manageHospitalData()` for API interaction methods.
+ * - Custom UI components (cards, table, modals, icons, inputs).
+ *
+ * Example usage:
+ * <RelationshipManagement />
+ */
+
+
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';

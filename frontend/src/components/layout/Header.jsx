@@ -1,3 +1,33 @@
+/**
+ * Header – React Component
+ *
+ * A simple header bar for the Hospital Digital Twin system, displaying the user's name, role,
+ * and a logout button.
+ *
+ * Features:
+ * - Fetches the currently authenticated user's profile using React Query.
+ * - Displays user's name and role (admin or agent).
+ * - Provides a "Sign Out" button that clears localStorage, React Query cache, and redirects to the login page.
+ *
+ * Data Fetching:
+ * - Uses `getProfile()` from `manageHospitalData()` to retrieve the user profile.
+ * - React Query caches the profile using the `['profile']` query key.
+ * 
+ * Behavior:
+ * - On logout, tokens are removed from `localStorage` and cache is cleared using `queryClient.clear()`.
+ * - User is redirected to the root route (`/`) after logout.
+ *
+ * Dependencies:
+ * - `react-router-dom` for navigation.
+ * - `react-query` (`useQuery`, `useQueryClient`) for profile fetching and cache management.
+ * - `lucide-react` icons for UI icons (User, LogOut).
+ * - Custom UI components like `Button`.
+ *
+ * Example usage:
+ * <Header />
+ */
+
+
 import { useNavigate } from "react-router-dom"
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';

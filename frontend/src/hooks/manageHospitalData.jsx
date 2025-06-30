@@ -1,3 +1,23 @@
+/**
+ * manageHospitalData – React Hook for a central administration of all api-calls concerning the 
+ * hospital system (agents, contexts, spaces, relationships and admins).
+ * 
+ * Provided methods:
+ * - fetch 
+ * - create
+ * - update 
+ * - delete 
+ * - archiving and restoring 
+ * - profile administration and password changing
+ * 
+ * 
+ * Example of usage:
+ * const {
+ *   getAgents, createContext, deleteUser, updateProfile
+ * } = manageHospitalData();
+ */
+
+
 import api from "@/api";
 
 
@@ -6,16 +26,6 @@ export const manageHospitalData = () => {
   {/* Get Objects */}
 
   // Get Agents
-  /* 
-    // Beispiel 1: Alle Agents laden
-    const data = await getAgents();
-
-    // Beispiel 2: Nach Name und Zugang filtern
-    const data = await getAgents({
-    name: "Smith",
-    min_access_level: 3,
-    ordering: "-access_level",}); 
-  */
   const getAgents = async (filters = {}) => {
     try {
         const response = await api.get("/api/agents/", {
@@ -187,7 +197,6 @@ export const manageHospitalData = () => {
 
 
   {/* Delete Objects*/}
-  // TODO: delete AgentUser as well!!
   const deleteAgent = async (agentId) => {
     try {
       const response = await api.delete(`/api/agents/${agentId}/`);
@@ -368,14 +377,7 @@ export const manageHospitalData = () => {
     }
   }
 
-  /*Beispiel:
-  {
-    username: "new_username",
-    first_name: "Alissa",
-    last_name: "Wang",
-    email: "new@example.com"
-  }
-*/
+  
   const updateProfile = async (updatedData) => {
     try {
       const res = await api.put(`api/auth/profile/`, updatedData);
@@ -386,13 +388,6 @@ export const manageHospitalData = () => {
     }
   };
 
-
-  /* Beispiel:
-  await changePassword({
-    currentPassword: "oldpass123",
-    newPassword: "securePass456",
-  });
-  */
   const changePassword = async ({ currentPassword, newPassword }) => {
     try {
       const res = await api.post(`api/auth/change-password/`, {
@@ -407,7 +402,6 @@ export const manageHospitalData = () => {
   };
 
    /* Archive and Unarchive Objects */
-
     const archive = async (model, id) => {
         try {
             const response = await api.post(`/api/${model}/${id}/archive/`);

@@ -1,3 +1,30 @@
+/**
+ * AdminDashboard – React Component
+ *
+ * This is the main interface for admin users in the OMNI-SYS system.
+ * It aggregates data from the backend, presents system statistics, and provides 
+ * tabs for managing users, objects (agents, contexts, spaces), and relationships.
+ *
+ * Features:
+ * - Fetches data on agents, contexts, spaces, and relationships using React Query.
+ * - Displays system statistics (with periodic refresh every 60 seconds).
+ * - Constructs a knowledge-graph-style view of all entities and their relationships.
+ * 
+ * Tabs:
+ * - Object Management: CRUD interface for hospital entities.
+ * - Relationship Management: Define how objects are connected.
+ * - User Management: Administer agent and admin user accounts.
+ * - Graph: Visualize the current system using a force-directed D3 graph.
+ * - Settings: Update admin profile info and change password.
+ *
+ * Dependencies:
+ * - React Query (data fetching and caching)
+ * - Lucide Icons
+ * - Custom components (Header, GraphVisualization, ObjectManagement, etc.)
+ * - `manageHospitalData` hook for backend API functions
+ */
+
+
 import { useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/layout/Header';

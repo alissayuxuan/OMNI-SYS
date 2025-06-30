@@ -1,3 +1,41 @@
+/**
+ * UserManagement – React Component
+ *
+ * A dashboard interface for managing system users (Admins and Agents) within the hospital system.
+ * Supports user listing, filtering, searching, creation, and deletion.
+ *
+ * Features:
+ * - Displays all admins and agents in a unified table.
+ * - Provides search and filtering by user type (admin/agent).
+ * - Enables user creation via the `CreateUserForms` modal.
+ * - Allows user deletion with confirmation via a dialog.
+ * - Displays relevant user metadata including name, email, role, and creation date.
+ *
+ * State:
+ * - `isCreateDialogOpen`: Controls visibility of the user creation form.
+ * - `filterType`: Controls the role-based filtering of users (all, admin, agent).
+ * - `searchTerm`: Tracks the user's input in the search field.
+ * - `confirmDialog`: Stores state for deletion confirmation modal.
+ *
+ * Data Fetching:
+ * - `useQuery` is used to fetch agents and admin profiles from the backend.
+ * - `useMemo` is used to normalize and merge the two user groups into a unified list.
+ * - React Query automatically refetches data every 60 seconds.
+ *
+ * Methods:
+ * - `handleDeleteUser`: Deletes either an agent or admin depending on role.
+ * - `handleConfirm`: Triggers deletion after confirmation.
+ *
+ * Dependencies:
+ * - React Query for data management
+ * - `manageHospitalData()` for API operations (fetching, deleting)
+ * - Custom UI components (e.g., Card, Dialog, Table, Input, Select)
+ * - Icons from `lucide-react`
+ *
+ * Example usage:
+ * <UserManagement />
+ */
+
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';

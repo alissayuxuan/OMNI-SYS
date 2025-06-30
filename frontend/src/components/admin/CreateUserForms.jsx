@@ -1,3 +1,36 @@
+/**
+ * CreateUserForms – React Component
+ *
+ * A dynamic modal component for creating new entities in a hospital system:
+ * - Agents (also objects in the system)
+ * - Admins
+ *
+ * Features:
+ * - Uses tabs to switch between different creation forms (Agent, Admin).
+ * - Handles input validation, submission feedback, and error handling via toasts.
+ * - Generates secure random passwords (optional).
+ * - Uses controlled form states and resets on close or after creation.
+ * - Provides inline form validation and user feedback.
+ *
+ * Props:
+ * - `isOpen` (boolean): Whether the dialog is open.
+ * - `onClose` (function): Function to close the dialog.
+ * - `refreshData` (function): Callback to trigger a data refresh after successful creation.
+ *
+ * Dependencies:
+ * - `manageHospitalData()` for API interaction (createAgent, createContext, createSpace)
+ * - `useToast()` for toast notifications
+ * - Custom UI components (Dialog, Tabs, Input, Button, etc.)
+ *
+ * Example:
+ * <CreateUserForms
+ *   isOpen={modalOpen}
+ *   onClose={() => setModalOpen(false)}
+ *   refreshData={loadData}
+ * />
+ */
+
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

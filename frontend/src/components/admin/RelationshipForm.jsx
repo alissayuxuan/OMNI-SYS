@@ -1,3 +1,35 @@
+/**
+ * RelationshipForm – React Component
+ *
+ * A modal dialog used to create or edit relationships between two agents in the hospital system.
+ * It supports both creation and update modes, with dynamic form initialization and validation.
+ *
+ * Features:
+ * - Select two different agents and describe their relationship.
+ * - Prevents selection of the same agent for both roles.
+ * - Uses toast notifications for success and error feedback.
+ * - Calls corresponding backend functions (`createRelationship`, `updateRelationship`) via `manageHospitalData`.
+ *
+ * Props:
+ * - `isOpen` (boolean): Whether the dialog is currently open.
+ * - `onClose` (function): Callback to close the dialog.
+ * - `agents` (array): List of available agents to populate the dropdowns.
+ * - `refreshData` (function): Callback to refresh data after submission.
+ * - `mode` (string): Either `"create"` or `"edit"` to determine behavior and initial state.
+ * - `initialData` (object): Relationship data to pre-fill the form in edit mode.
+ *
+ * Example usage:
+ * <RelationshipForm
+ *   isOpen={modalOpen}
+ *   onClose={() => setModalOpen(false)}
+ *   agents={agentList}
+ *   refreshData={fetchRelationships}
+ *   mode="edit"
+ *   initialData={selectedRelationship}
+ * />
+ */
+
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
