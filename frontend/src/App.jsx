@@ -1,3 +1,30 @@
+/**
+ * App – Main Application Entry Point
+ *
+ * This component sets up the global application structure, including routing, state management,
+ * and UI providers.
+ *
+ * Key Features:
+ * - React Router is used to handle client-side routing.
+ * - React Query is used for data fetching, caching, and state management.
+ * - ProtectedRoute components wrap routes that require authentication and role-based access.
+ * - TooltipProvider enables tooltips throughout the UI.
+ * - Toaster is used to display toast notifications globally.
+ * - ReactQueryDevtools is included for development-time debugging of queries and mutations.
+ *
+ * Routes:
+ * - "/" → Login page.
+ * - "/agent-dashboard" → Protected route accessible only by authenticated agents.
+ * - "/admin-dashboard" → Protected route accessible only by authenticated admins.
+ * - "*" → Catch-all for undefined routes; renders NotFound page.
+ *
+ * Components:
+ * - `AppContent`: Encapsulates route definitions.
+ * - `App`: Wraps the application with necessary providers.
+ */
+
+
+
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
