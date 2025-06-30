@@ -1,3 +1,36 @@
+/**
+ * EditObjectForm – React Component
+ *
+ * A reusable modal dialog for editing existing entities in the hospital system:
+ * - Agent: edit name
+ * - Context: edit name, start time, space, and participants
+ * - Space: edit name and capacity
+ *
+ * Features:
+ * - Auto-fills form fields based on the selected object.
+ * - Handles form validation, submission, and toast notifications.
+ * - Displays appropriate form fields based on the object type.
+ *
+ * Props:
+ * - `isOpen` (boolean): Whether the dialog is currently open.
+ * - `onClose` (function): Callback to close the dialog.
+ * - `object` (object): The selected object to edit. Must include `type`, `id`, and other relevant fields.
+ * - `refreshData` (function): Callback to refresh data after saving.
+ * - `agents` (array): List of agents available for context participants.
+ * - `spaces` (array): List of available spaces for context assignment.
+ *
+ * Example usage:
+ * <EditObjectForm
+ *   isOpen={isEditing}
+ *   onClose={() => setIsEditing(false)}
+ *   object={selectedObject}
+ *   refreshData={fetchObjects}
+ *   agents={agentList}
+ *   spaces={spaceList}
+ * />
+ */
+
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

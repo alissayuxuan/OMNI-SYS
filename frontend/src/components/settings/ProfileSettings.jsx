@@ -1,3 +1,26 @@
+/**
+ * ProfileSettings – React Component
+ *
+ * Allows authenticated users (admins or agents) to view and update their profile information,
+ * including name, email, and password.
+ *
+ * Features:
+ * - Fetches user profile using React Query (`getProfile`).
+ * - Displays editable profile fields depending on role.
+ * - Allows changing username, name/email (admin), or agent name.
+ * - Provides a secure dialog for updating the user's password.
+ * - Shows validation feedback and toast messages on success/error.
+ *
+ * Dependencies:
+ * - React Query (`useQuery`, `useMutation`, `useQueryClient`)
+ * - `manageHospitalData()` for data handling (get, update, changePassword)
+ * - Custom UI components and toast hook for user feedback
+ *
+ * Example usage:
+ * <ProfileSettings />
+ */
+
+
 import { useMemo, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';

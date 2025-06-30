@@ -1,3 +1,25 @@
+/**
+ * Toast Notification System (React, Local State)
+ *
+ * This module provides a lightweight, local-only toast notification system for React apps.
+ * It supports adding, updating, dismissing, and auto-removing toast messages.
+ *
+ * Features:
+ * - Maximum number of concurrent toasts is limited (default: 1).
+ * - Toasts auto-dismiss after a delay (default: 5000ms).
+ * - Toasts can be updated or dismissed manually.
+ * - Toasts are tracked in memory and synchronized with subscribed components.
+ *
+ * Exports:
+ * - `useToast`: React hook to access current toasts and toast operations.
+ * - `toast`: Function to show a toast and optionally update or dismiss it later.
+ *
+ * Example usage:
+ * const { toast } = useToast();
+ * toast({ title: "Hello!", description: "This is a toast message." });
+ */
+
+
 import * as React from "react"
 
 const TOAST_LIMIT = 1

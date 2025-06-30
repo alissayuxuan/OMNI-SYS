@@ -1,3 +1,41 @@
+/**
+ * ObjectManagement – React Component
+ *
+ * A comprehensive dashboard for managing hospital-related objects:
+ * Agents, Contexts, and Spaces. Supports CRUD operations with filtering,
+ * search, archiving, and data refreshing via React Query.
+ *
+ * Features:
+ * - Fetches and displays all agents, contexts, and spaces using React Query.
+ * - Provides filtering by object type and search functionality by name.
+ * - Enables creating new objects via a modal form (`CreateObjectForms`).
+ * - Allows editing existing objects in a modal (`EditObjectForm`).
+ * - Supports archiving/unarchiving and deletion with confirmation dialogs.
+ * - Regularly refetches data to keep the view up-to-date.
+ * - Displays archived items with visual distinction.
+ *
+ * UI:
+ * - Objects are displayed in a unified table view.
+ * - Type badges are color-coded by object type.
+ * - Archive and delete actions are clearly presented per row.
+ * - Uses custom UI components and iconography from Lucide and Tailwind.
+ *
+ * Internal State:
+ * - `filterType`: Filters objects by type (agent, context, space, or all).
+ * - `searchTerm`: Filters objects by name.
+ * - `showAll`: Toggles between showing archived and active objects.
+ * - `confirmDialog`: Manages state for confirmation modals (delete/archive).
+ * - `editingObject`: Tracks currently selected object for editing.
+ *
+ * Data Fetching:
+ * - Uses `useQuery` to fetch agents, contexts, and spaces with optional archive filters.
+ * - Uses `manageHospitalData()` to access data operations like delete, archive, and unarchive.
+ *
+ * Example usage:
+ * <ObjectManagement />
+ */
+
+
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';

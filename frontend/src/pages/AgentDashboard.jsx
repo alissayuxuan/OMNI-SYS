@@ -1,3 +1,26 @@
+/**
+ * AgentDashboard – React Component
+ *
+ * This is the main dashboard for agent users in the OMNISYS-system.
+ * It provides a limited and personalized view of the system's data, with a focus 
+ * on visualizing relevant objects and relationships for the agent user
+ *
+ * Features:
+ * - Fetches profile, agent, context, space, and relationship data using React Query.
+ * - Computes statistics for total agents, contexts, spaces, and relationships.
+ * - Filters system objects and relationships based on the agent’s involvement:
+ *    • Direct relationships (e.g. agent participates in a context)
+ *    • Indirect links through shared contexts or relationships
+ *    • Filtered graph using BFS-style expansion to include all connected nodes.
+ * - Displays a system graph containing only connected nodes for the current agent.
+ * - Allows agents to view and update their own profile and password settings.
+ *
+ * Tabs:
+ * - System Graph: Interactive knowledge graph limited to the agent’s connected objects.
+ * - Profile Settings: Form to update user details and password.
+ */
+
+
 import { Header } from '@/components/layout/Header';
 import { ProfileSettings } from '@/components/settings/ProfileSettings';
 import { GraphVisualization } from '@/components/graph/GraphVisualization';

@@ -1,3 +1,53 @@
+/**
+ * GraphVisualization – React Component
+ *
+ * An interactive D3-based force-directed graph that visualizes objects and their relationships
+ * within a hospital system. Users can search, filter, zoom, and focus on specific nodes
+ * to better understand the structure and context of entities such as agents, contexts, and spaces.
+ *
+ * Props:
+ * - `objects` (Array): List of nodes/objects in the graph. Each object must include:
+ *   - `id` (string or number): Unique identifier
+ *   - `name` (string): Display name
+ *   - `type` (string): Object type (e.g., 'agent', 'context', 'space')
+ *   - `properties` (object): Optional metadata for detailed display
+ * - `relationships` (Array): List of edges connecting the objects. Each must include:
+ *   - `id` (string or number): Unique relationship identifier
+ *   - `fromObjectId` (string or number): Source object ID
+ *   - `toObjectId` (string or number): Target object ID
+ *   - `relationshipType` (string): Type/label of the relationship (optional)
+ *
+ * Features:
+ * - Uses D3.js for simulation, layout, drag, and zoom behavior.
+ * - Filters nodes by type and search term.
+ * - Highlights connections when a node is clicked.
+ * - Displays node details in a side panel.
+ * - Allows focusing on a specific node and its directly connected nodes.
+ * - Includes a reset button to restore the full graph view.
+ *
+ * UI Components:
+ * - `Select`, `Input`, `Badge`, `Card`, and icon buttons from a UI component library.
+ * - Zoomable and pannable SVG canvas rendered with D3.
+ *
+ * Internal State:
+ * - `filteredObjects`: Nodes visible in the current view (based on filters).
+ * - `filteredRelationships`: Edges that connect only the visible nodes.
+ * - `selectedNode`: The currently selected node (shows details in sidebar).
+ * - `searchTerm`, `typeFilter`: Controls for filtering the graph.
+ *
+ * D3 Features:
+ * - Force simulation with link distance, charge, centering, and collision.
+ * - Nodes are styled and colored by type.
+ * - Labels and relationship types are displayed alongside nodes/edges.
+ * - Interactive drag and zoom.
+ *
+ * Example usage:
+ * <GraphVisualization
+ *   objects={[{ id: 1, name: 'Agent A', type: 'agent', properties: {} }]}
+ *   relationships={[{ id: 'r1', fromObjectId: 1, toObjectId: 2, relationshipType: 'connected' }]}
+ * />
+ */
+
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
