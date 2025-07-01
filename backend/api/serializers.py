@@ -175,7 +175,7 @@ class ContextSerializer(serializers.ModelSerializer):
             # Find overlapping contexts in the same space
             overlapping = Context.objects.filter(
                 space=space,
-                scheduled__gte=start_time - timedelta(hours=1)  # Assume default 1-hour duration
+                scheduled=start_time
             )
 
             if self.instance:
