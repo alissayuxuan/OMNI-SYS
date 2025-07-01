@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, permission_classes, api_view
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -15,8 +15,8 @@ from django.db import IntegrityError
 import logging
 from mqtt_backend.comm_node_manager import CommNodeManager
 from users.models import CustomUser, AgentProfile
-from rest_framework.decorators import api_view
 from django.shortcuts import get_object_or_404
+import redis
 
 logger = logging.getLogger('omnisyslogger')
 

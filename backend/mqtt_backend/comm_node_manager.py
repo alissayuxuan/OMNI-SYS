@@ -10,9 +10,14 @@ class CommNodeManager:
     def create_node(cls, agent_id, username, password):
         if agent_id not in cls.live_nodes:
             node = BaseNode(str(agent_id), username, password)
-            node.start()
+            try:
+                node.start()
+                logger.info(f"Started BaseNode thread for {agent_id}")
+            except Exception as e:
+                logger.error(f"Failed to start BaseNode for {agent_id}: {str(e)}")
             cls.live_nodes[agent_id] = node
             logger.info(f"Created new node for agent {agent_id}")
+            logger.debug(f"Live nodes after creation: {cls.live_nodes.keys()}")
             return node
         
         logger.info(f"Reusing existing node for agent {agent_id}")
