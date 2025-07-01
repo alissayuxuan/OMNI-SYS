@@ -110,7 +110,9 @@ class ContextSerializer(serializers.ModelSerializer):
     space_id = serializers.PrimaryKeyRelatedField(
         source='space',
         queryset=Space.objects.all(),
-        write_only=True
+        write_only=True,
+        allow_null=True,
+        required=False
     )
     agent_ids = serializers.PrimaryKeyRelatedField(
         source='agents',
