@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, permission_classes, api_view
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -15,8 +15,8 @@ from django.db import IntegrityError
 import logging
 from mqtt_backend.comm_node_manager import CommNodeManager
 from users.models import CustomUser, AgentProfile
-from rest_framework.decorators import api_view
 from django.shortcuts import get_object_or_404
+import redis
 
 logger = logging.getLogger('omnisyslogger')
 
@@ -636,7 +636,6 @@ class AgentReceiveMessageView(APIView):
     def get(self, request, agent_id):
         """Retrieve and clear buffered messages for the agent."""
         buffer_key_prefix = f"buffer:*:{agent_id}"
-        import redis
         r = redis.Redis(host='redis', port=6379, db=1)
         keys = r.keys(buffer_key_prefix)
 
@@ -656,7 +655,9 @@ def get_agent_id_by_username(request, username):
     """Return the agent_id from a given user username"""
     user = get_object_or_404(CustomUser, username=username)
     agent_profile = get_object_or_404(AgentProfile, user=user)
-    agent = get_object_or_404(Agent, id=agent_profile.agent_object_id, is_archived=False)
+    agent = get_object_or_404(Agent, id=agent_profile.agent_object.id, is_archived=False)
+    if agent.is_archived:
+        return Response({"error": "Agent is archived"}, status=404)
 
     return Response({
         "agent_id": agent.id,
