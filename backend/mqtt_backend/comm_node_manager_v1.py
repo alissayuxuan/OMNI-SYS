@@ -1,4 +1,4 @@
-from mqtt_backend.core.base_node import BaseNode
+from mqtt_backend.core.base_node_v1 import BaseNode
 import logging
 
 logger = logging.getLogger('omnisyslogger')
@@ -7,9 +7,9 @@ class CommNodeManager:
     live_nodes = {}
 
     @classmethod
-    def create_node(cls, agent_id):
+    def create_node(cls, agent_id, username, password):
         if agent_id not in cls.live_nodes:
-            node = BaseNode(str(agent_id))  # Only agent_id needed
+            node = BaseNode(str(agent_id), username, password)
             try:
                 node.start()
                 logger.info(f"Started BaseNode thread for {agent_id}")
@@ -19,7 +19,7 @@ class CommNodeManager:
             logger.info(f"Created new node for agent {agent_id}")
             logger.debug(f"Live nodes after creation: {cls.live_nodes.keys()}")
             return node
-
+        
         logger.info(f"Reusing existing node for agent {agent_id}")
         return cls.live_nodes[agent_id]
 
