@@ -12,6 +12,6 @@ router.register(r'relationships', RelationshipViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path("agents/by-username/<str:username>/", get_agent_id_by_username),
-    path('agents/<str:agent_id>/send/', AgentSendMessageView.as_view()),
-    path('agents/<str:agent_id>/receive/', AgentReceiveMessageView.as_view()),
+    # path('agents/<str:agent_id>/send/', AgentSendMessageView.as_view()),
+    # path('agents/<str:agent_id>/receive/', AgentReceiveMessageView.as_view()),
 ]
