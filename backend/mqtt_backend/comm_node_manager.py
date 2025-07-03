@@ -13,6 +13,7 @@ class CommNodeManager:
             try:
                 node.start()
                 logger.info(f"Started BaseNode thread for {agent_id}")
+                node.retry_buffered_messages_all()
             except Exception as e:
                 logger.error(f"Failed to start BaseNode for {agent_id}: {str(e)}")
             cls.live_nodes[agent_id] = node
