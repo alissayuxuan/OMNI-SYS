@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import AgentViewSet, SpaceViewSet, ContextViewSet, RelationshipViewSet, AgentSendMessageView, AgentReceiveMessageView, get_agent_id_by_username
+from .views import AgentViewSet, SpaceViewSet, ContextViewSet, RelationshipViewSet, get_agent_id_by_username
 
 
 router = DefaultRouter()
