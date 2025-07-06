@@ -63,40 +63,6 @@ export const AgentDashboard = () => {
     };
   }, [agentsRes, contextsRes, spacesRes, relationshipsRes]);
   
-  /* Objects and Relationships for Graph Visualization */
-  //filter for connectong objects of certain agent
-  const getConnectedObjects = (targetAgentId, allRelationships) => {
-    const connectedObjectIds = new Set([`agent-${targetAgentId}`]);
-    const processedRelationships = new Set();
-    
-    let foundNew = true;
-    while (foundNew) {
-      foundNew = false;
-      
-      for (const rel of allRelationships) {
-        const relKey = `${rel.fromObjectId}-${rel.toObjectId}-${rel.relationshipType}`;
-        if (processedRelationships.has(relKey)) continue;
-        
-        if (connectedObjectIds.has(rel.fromObjectId)) {
-          if (!connectedObjectIds.has(rel.toObjectId)) {
-            connectedObjectIds.add(rel.toObjectId);
-            foundNew = true;
-          }
-          processedRelationships.add(relKey);
-        }
-        
-        if (connectedObjectIds.has(rel.toObjectId)) {
-          if (!connectedObjectIds.has(rel.fromObjectId)) {
-            connectedObjectIds.add(rel.fromObjectId);
-            foundNew = true;
-          }
-          processedRelationships.add(relKey);
-        }
-      }
-    }
-    
-    return connectedObjectIds;
-  };
 
   const agents = useMemo(() => agentsRes.results.map(agent => ({
     id: "agent-" + agent.id,
@@ -163,7 +129,7 @@ export const AgentDashboard = () => {
     return [...rels, ...backendRelationships];
   }, [contextsRes, relationshipsRes]);
 
-  // filtered Obejcts and Relationships
+  
   const getFilteredData = (targetAgentId) => {
     if (!targetAgentId) {
       return {
@@ -171,23 +137,30 @@ export const AgentDashboard = () => {
         relationships: allRelationships
       };
     }
-
-    const connectedObjectIds = getConnectedObjects(targetAgentId, allRelationships);
-    
+  
+    const targetId = `agent-${targetAgentId}`;
+  
+    // Nur direkte Beziehungen, in denen der Agent beteiligt ist
+    const directRelationships = allRelationships.filter(
+      rel => rel.fromObjectId === targetId || rel.toObjectId === targetId
+    );
+  
+    // Alle Objekte aus diesen direkten Beziehungen extrahieren
+    const connectedObjectIds = new Set();
+    directRelationships.forEach(rel => {
+      connectedObjectIds.add(rel.fromObjectId);
+      connectedObjectIds.add(rel.toObjectId);
+    });
+  
     const filteredObjects = [
       ...agents.filter(agent => connectedObjectIds.has(agent.id)),
       ...contexts.filter(context => connectedObjectIds.has(context.id)),
       ...spaces.filter(space => connectedObjectIds.has(space.id))
     ];
-    
-    const filteredRelationships = allRelationships.filter(rel => 
-      connectedObjectIds.has(rel.fromObjectId) && 
-      connectedObjectIds.has(rel.toObjectId)
-    );
-    
+  
     return {
       objects: filteredObjects,
-      relationships: filteredRelationships
+      relationships: directRelationships
     };
   };
 
