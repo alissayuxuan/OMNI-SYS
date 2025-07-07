@@ -85,20 +85,19 @@ class AgentViewSet(ArchiveMixin, viewsets.ModelViewSet):
         return self._filter_queryset(queryset)
 
     def create(self, request, *args, **kwargs):
-        try:
-            logger.info(f"Creating new agent with data: {request.data}")
-            response = super().create(request, *args, **kwargs)
-            logger.info(f"Successfully created agent with ID: {response.data.get('id')}")
-
-            agent_id = response.data.get('id')
-            if agent_id:
-                try:
-                    CommNodeManager.create_node(agent_id)
-                except Exception as comm_error:
-                    logger.error(f"Failed to create comm node: {str(comm_error)}")
-                    # Continue anyway, don't fail the request
-
-            return response
+        logger.info(f"Creating new agent with data: {request.data}")
+        response = super().create(request, *args, **kwargs)
+        logger.info(f"Successfully created agent with ID: {response.data.get('id')}") 
+        agent_id = response.data.get('id')
+        if agent_id:
+            node = CommNodeManager.create_node(agent_id)
+            if node:
+                client_id = node.client._client_id
+                response.data['client_created'] = True
+                logger.info(f"Communication node created with client ID: {client_id}")
+            else:
+                logger.warning(f"Failed to create communication node for agent ID: {agent_id}")
+        return response
 
         except Exception as e:
             logger.error(f"Error creating agent: {str(e)}")

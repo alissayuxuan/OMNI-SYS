@@ -10,9 +10,10 @@ BROKER = "localhost"
 PORT = 1883
 
 class BaseNode:
-    def __init__(self, object_id, broker=BROKER, port=PORT):
+    def __init__(self, object_id, access_token, broker=BROKER, port=PORT):
         self.object_id = object_id
-        self.client = Client(client_id=object_id)
+        self.client = Client(client_id=object_id, password=access_token)
+        self.client.username_pw_set(username=object_id, password=access_token)
         self.client.user_data_set(self)
         self.client.on_message = self.on_message
         self.client.connect(broker, port, 60)
