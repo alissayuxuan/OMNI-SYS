@@ -1,8 +1,15 @@
-from django.db import models
+"""
+models.py – User and Profile Models
 
-# Create your models here.
+Custom user-related models for the authentication system are defined here.
+The model introduces a CustomUser model that extends Django's AbstractUser and 
+adds a 'role' field to distinguish between two types of users: 'admin' and 'agent'.
 
-# models.py
+It also defines:
+- AdminProfile: A profile model linked to users with the 'admin' role.
+- AgentProfile: A profile model linked to users with the 'agent' role and associated 
+  with an 'Agent' object from the main application.
+"""
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models

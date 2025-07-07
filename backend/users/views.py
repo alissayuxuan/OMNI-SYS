@@ -1,3 +1,17 @@
+"""
+Defines API views for:
+- Custom JWT authentication with role-based token data
+- User registration (admin-only)
+- Listing, retrieving, updating, and deleting users and their profiles (AdminProfile, AgentProfile)
+- Viewing and updating the current user’s own profile based on role
+- Changing user passwords securely
+
+Includes:
+- Custom permission class `IsAdmin` to restrict admin-only endpoints
+- Centralized error handling using `handle_api_error` for consistent API responses
+"""
+
+
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response

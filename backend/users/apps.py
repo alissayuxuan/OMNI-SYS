@@ -1,3 +1,6 @@
+"""
+This app implements the authentification logic of the system.
+"""
 from django.apps import AppConfig
 
 

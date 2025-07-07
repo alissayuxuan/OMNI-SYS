@@ -1,4 +1,16 @@
-# serializers.py
+"""
+This file defines serializers for user registration, authentication, profile 
+management, and password change functionality.
+
+Includes:
+- CustomUserSerializer: Basic user info.
+- AdminProfileSerializer & AgentProfileSerializer: Read serializers for admin and agent profiles.
+- AdminProfileUpdateSerializer & AgentProfileUpdateSerializer: Update serializers for profile editing.
+- PasswordChangeSerializer: Handles password updates with validation.
+- RegisterUserSerializer: Role-based registration (admin or agent) with transaction-safe creation.
+- CustomTokenObtainPairSerializer & CustomTokenRefreshSerializer: Extend JWT token behavior 
+  to include user ID and role for frontend role-based access control.
+"""
 
 from rest_framework import serializers
 from .models import CustomUser, AdminProfile, AgentProfile
