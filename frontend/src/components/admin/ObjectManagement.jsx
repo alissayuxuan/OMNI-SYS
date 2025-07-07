@@ -139,24 +139,6 @@ export const ObjectManagement = () => {
     setIsEditDialogOpen(true);
   };
 
-  /*
-  const handleArchiveObject = async (object) => {
-    try {
-      if (object.type === "agent") await archive("agents", object.id);
-      else if (object.type === "context") await archive("contexts", object.id);
-      else if (object.type === "space") await archive("spaces", object.id);
-
-      toast({ title: "Success", description: "Object successfully archived" });
-
-      queryClient.invalidateQueries({queryKey: ['agents']});
-      queryClient.invalidateQueries({queryKey: ['contexts']});
-      queryClient.invalidateQueries({queryKey: ['spaces']});
-    } catch (err) {
-      console.error("Error:", err);
-      toast({ title: "Error", description: err.message, variant: 'destructive'  });
-    }
-  };*/
-
   const handleArchiveObject = async (object) => {
     try {
       if (object.archived) {

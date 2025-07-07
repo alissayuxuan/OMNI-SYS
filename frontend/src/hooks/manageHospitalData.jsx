@@ -325,9 +325,11 @@ export const manageHospitalData = () => {
   };
 
   // Update Relationship
-  const updateRelationship = async (relationshipId, updatedData) => {
+  const updateRelationship = async (relationshipId, updatedData, isPartial = true) => {
     try {
-      const response = await api.patch(`/relationships/${relationshipId}/`, updatedData);
+      console.log("update relationship:\n", updatedData)
+      const method = isPartial ? "patch" : "put";
+      const response = await api[method](`/api/relationships/${relationshipId}/`, updatedData);
       return response.data;
     } catch (error) {
       const message = error.response?.data?.error || "Error occured when updating the relationship.";
@@ -370,7 +372,6 @@ export const manageHospitalData = () => {
   const getProfile = async () => {
     try {
       const res = await api.get(`api/auth/profile/`);
-      console.log("Profile fetched successfully:", res.data);
       return res.data;
     } catch (error) {
       throw new Error(error.response?.data?.error || "Failed to fetch agent profile");

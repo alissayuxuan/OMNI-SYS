@@ -237,7 +237,7 @@ export const ProfileSettings = () => {
             <DialogDescription>Enter your current password and choose a new one</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {/*<div>
+            <div>
               <Label>Current Password</Label>
               <div className="relative w-full">
                 <Input
@@ -257,7 +257,7 @@ export const ProfileSettings = () => {
                 </button>
               </div>
             </div>
-            {/*<div>
+            <div>
               <Label>New Password</Label>
               <div className="relative w-full">
                 <Input
