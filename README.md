@@ -28,6 +28,19 @@ cd ../frontend
 npm install
 ```
 
+### Configure Environment Variables
+In the backend/ directory, create a .env file with the following content:
+
+```bash
+DB_NAME=<your-database-name>
+DB_USER=<your-database-user>
+DB_PASSWORD=<your-database-password>
+DB_HOST=<your-database-host>
+DB_PORT=<your-database-port>
+SECRET_KEY=<your-django-secret-key>
+DEBUG=<true for development/false for production>
+```
+
 
 ## Running the Application
 
@@ -187,4 +200,34 @@ python manage.py migrate
 
 Your database and migrations are now reset to a clean state.
 
+## Create Admin-/ Agent User
+
+In order to be able to create any users or objects through API calls, a first admin user has to exist.
+
+Create an Admin User in Shell:
+
+```bash
+poetry run python manage.py shell
+
+from users.models import CustomUser, AdminProfile
+
+admin_user = CustomUser.objects.create_user(username='admin_user', password='admin_password', role='admin')
+
+AdminProfile.objects.create(user=admin_user, first_name='Admin_First', last_name='Admin_Last', email='admin@email.com')
+```
+
+Create an Agent User in Shell:
+
+```bash
+python manage.py shell
+
+from users.models import CustomUser, AgentProfile
+from api.models import Agent
+
+agent_obj = Agent.objects.create(name='Agent Object')
+
+agent_user = CustomUser.objects.create_user(username='agent_user', password='agent-password', role='agent')
+
+AgentProfile.objects.create(user=agent_user, agent_object=agent_obj)
+```
 
