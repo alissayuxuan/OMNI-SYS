@@ -1,6 +1,10 @@
 import time
 from remote_base_node import BaseNode
 
+"""
+This script starts a receiver node that listens for messages sent to a specific Agent ID.
+"""
+
 AGENT_ID = "15"  # Change to receiver's Agent ID
 
 def main():

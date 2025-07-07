@@ -2,6 +2,7 @@ from hl7apy.core import Message
 
 def generate_hl7(msg_type="ADT_A01", msh_kwargs=None, segments=None):
     """
+    Generate an HL7 message in ER7 format.
     msg_type: HL7 message type (e.g., "ADT_A01", "ORU_R01")
     msh_kwargs: Dict of MSH segment overrides
     segments: Dict of segment_name -> {field: value, ...}

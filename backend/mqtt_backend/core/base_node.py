@@ -13,7 +13,13 @@ RETRY_INTERVAL = 10  # seconds
 logger = logging.getLogger('omnisyslogger')
 
 class BaseNode:
+    """
+    Base class for all communication nodes
+    This class handles MQTT connection, message sending, receiving, and retrying buffered messages.
+    It uses Redis for buffering messages when the broker is down.
+    """
     def __init__(self, object_id, broker=BROKER, port=PORT):
+        """Initialize the BaseNode with an object ID, broker address, and port."""
         self.object_id = object_id
         self.broker = broker
         self.port = port
@@ -29,6 +35,7 @@ class BaseNode:
         self.connect()
 
     def start(self):
+        """Start the MQTT client loop and retry thread."""
         if not self._thread:
             self._thread = Thread(target=self.client.loop_start, daemon=True)
             self._thread.start()
@@ -36,6 +43,7 @@ class BaseNode:
                 self._retry_thread.start()
 
     def stop(self):
+        """Stop the MQTT client loop and retry thread."""
         self._retry_stop_event.set()
         if self.client:
             self.client.disconnect()
@@ -43,6 +51,7 @@ class BaseNode:
         logger.info(f"[Object: {self.object_id}] MQTT client disconnected and loop stopped.")
 
     def send_message(self, destination, protocol, msg_type, payload):
+        """Send a message to a destination using MQTT."""
         envelope = {
             "protocol": protocol,
             "type": msg_type,
@@ -62,6 +71,10 @@ class BaseNode:
             self.redis.lpush(f"buffer:{self.object_id}:{destination}", json.dumps(envelope))
 
     def on_message(self, client, userdata, msg):
+        """
+        Callback for incoming messages.
+        Decodes the message payload and routes it to the appropriate handler.
+        """
         payload_raw = msg.payload.decode()
         print(f"\n📩 [RECEIVED] Topic: {msg.topic}")
         print(f"📦 Payload (raw): {payload_raw}")
@@ -74,6 +87,10 @@ class BaseNode:
             logger.error(f"Error decoding message: {e}")
 
     def handle_message(self, message):
+        """
+        Handle incoming messages by decoding the payload based on the protocol.
+        Uses ProtocolRouter to get the appropriate handler for the protocol.
+        """
         protocol = message.get('protocol')
         handler = ProtocolRouter.get_handler(protocol)
         if handler:
@@ -100,6 +117,10 @@ class BaseNode:
         # self.client.subscribe(f"comm/{self.object_id}")
     
     def _on_connect(self, client, userdata, flags, rc):
+        """
+        Callback for successful connection to the MQTT broker.
+        Subscribes to the topic for this object 'communication/<agent_id>', which acts as inbox for the node.
+        """
         if rc == 0:
             topic = f"comm/{self.object_id}"
             client.subscribe(topic, qos=1)
@@ -117,6 +138,7 @@ class BaseNode:
                 self._retry_single_destination(destination)
 
     def _retry_single_destination(self, destination):
+        """Retry buffered messages for a specific destination."""
         key = f"buffer:{self.object_id}:{destination}"
         while True:
             msg_json = self.redis.rpop(key)

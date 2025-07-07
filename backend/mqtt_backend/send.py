@@ -8,10 +8,10 @@ BROKER_PORT = 1883
 BACKEND_HOST = "localhost"
 BACKEND_PORT = 8000
 
-LOGIN_USERNAME = "doctor-1"
-LOGIN_PASSWORD = "123456"
-TARGET_USERNAME = "medical-device-1"
-PROTOCOL = "hl7"
+LOGIN_USERNAME = "doctor-1"                  # Change to sender's name
+LOGIN_PASSWORD = "123456"                    # Change to sender's password
+TARGET_USERNAME = "medical-device-1"         # Change to receiver's name
+PROTOCOL = "hl7"                             # Change to desired protocol
 
 API_ROOT = f"http://{BACKEND_HOST}:{BACKEND_PORT}/api"
 
@@ -31,10 +31,12 @@ def main():
     token = get_access_token(LOGIN_USERNAME, LOGIN_PASSWORD)
     print("✓ got access token")
 
+    # Resolve IDs
     sender_id = get_agent_id(LOGIN_USERNAME, token)
     receiver_id = get_agent_id(TARGET_USERNAME, token)
     print(f"✓ sender_id={sender_id}, receiver_id={receiver_id}")
 
+    # Spin up BaseNode and send message
     node = BaseNode(str(sender_id), broker=BROKER_HOST, port=BROKER_PORT)
     node.start()
 
@@ -50,6 +52,7 @@ def main():
                       payload=payload)
     print("✓ message published via MQTT")
 
+    # Keep running to allow MQTT to flush or receive
     try:
         while True:
             time.sleep(1)

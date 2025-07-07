@@ -2,6 +2,9 @@ from .handlers.dicom_handler import DICOMHandler
 from .handlers.hl7_handler import HL7Handler
 
 class ProtocolRouter:
+    """
+    Protocol Router for handling different communication protocols
+    """
     handlers = {
         "DICOM": DICOMHandler,
         "HL7": HL7Handler,

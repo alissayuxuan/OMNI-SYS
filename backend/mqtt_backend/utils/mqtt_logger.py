@@ -1,6 +1,11 @@
 import paho.mqtt.client as mqtt
 import logging
 
+"""
+MQTT Logger for logging all MQTT communication
+This script connects to an MQTT broker and logs all messages received on the "comm/#" topic.
+"""
+
 logger = logging.getLogger('omnisyslogger')
 
 def on_connect(client, userdata, flags, rc):

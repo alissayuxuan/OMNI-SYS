@@ -5,13 +5,16 @@ from threading import Thread
 from paho.mqtt.client import Client
 
 BROKER_HOST = "192.168.0.2"
-BROKER_PORT = 1883
+BROKER_PORT = 21883
 LOGLEVEL = logging.INFO
 
 logging.basicConfig(level=LOGLEVEL)
 logger = logging.getLogger("remotenode")
 
 class BaseNode:
+    """
+    Remote Base Node for handling MQTT communication (same as /core/base_node.py but without Redis buffering)
+    """
     def __init__(self, object_id, broker=BROKER_HOST, port=BROKER_PORT):
         self.object_id = object_id
         self.broker = broker
@@ -78,7 +81,6 @@ class BaseNode:
             logger.warning(f"[Object: {self.object_id}] Failed to connect with code {rc}")
 
 
-# --- Usage Example ---
 if __name__ == "__main__":
     node = BaseNode(object_id="my-remote-agent")
     node.start()
