@@ -1,5 +1,8 @@
 import base64
 
+"""
+DICOM-related utilities for encoding and decoding messages
+"""
 class DICOMHandler:
     @staticmethod
     def encode(binary_data: bytes) -> str:

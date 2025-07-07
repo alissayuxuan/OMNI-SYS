@@ -126,8 +126,8 @@ Navigate to the sidebar > Click 'Authentication' > 'Create'-button > Choose 'JWT
 
 ## Communication Scripts
 
-- `base_node.py`: Abstract class used for all agent communication
-- `remote_base_node.py`: Same as "base_node.py" just different ports
+- `base_node.py`: Abstract class used for all agent communication and has redis buffering
+- `remote_base_node.py`: Same as "base_node.py" just different ports and without redis buffering
 - `send.py`: Same as "remote_send.py" just different ports
 - `remote_send.py`: Used by object to send a message
 - `receiver.py`: Used by any agent to continuously listen to incoming messages

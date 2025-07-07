@@ -3,6 +3,10 @@ import json
 import time
 from remote_base_node import BaseNode
 
+"""
+Remote send script to start and connect the sender node and send a message to a receiver node
+"""
+
 BACKEND_HOST = "192.168.0.2"
 BACKEND_PORT = 28000
 BROKER_HOST = "192.168.0.2"

@@ -5,6 +5,9 @@ class ApiConfig(AppConfig):
     name = 'api'
 
     def ready(self):
+        """
+        This method is called when the app is ready.
+        It is used to perform any startup tasks, such as rebuilding communication nodes."""
         import os
         if os.environ.get("RUN_MAIN") == "true":
             from api.models import Agent
