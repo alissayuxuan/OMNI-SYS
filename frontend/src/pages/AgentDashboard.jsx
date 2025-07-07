@@ -103,7 +103,7 @@ export const AgentDashboard = () => {
     properties: {
       time: context.scheduled,
       paticipants: context.agents_detail.map(agent => agent.name),
-      space: context.space_detail.name
+      space: context.space_detail?.name || "no space"
     },
   })), [contextsRes]);
 
