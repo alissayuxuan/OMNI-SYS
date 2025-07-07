@@ -27,6 +27,7 @@ django-filter = "^25.1"
 redis = "^6.2.0"
 celery = "^5.5.3"
 django-redis = "^5.4.0"
+requests = "^2.32.4"
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"

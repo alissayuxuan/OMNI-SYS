@@ -1,21 +1,5 @@
 # OMNI-SYS
 
-## Prerequisites
-Before running this project, you must have Docker installed. Choose **one** of these installation methods:
-
-### Option 1: Docker Desktop (Recommended)
-1. Download Docker Desktop:
-   - [Windows/Mac](https://www.docker.com/products/docker-desktop)
-   - [Linux](https://docs.docker.com/desktop/install/linux-install/)
-2. Install with default settings
-
-### Option 2: Command Line Installation (Linux)
-```bash
-sudo apt update
-sudo apt install docker.io docker-compose -y
-```
-
-
 ## Setup Instructions
 
 ### 1. Create and Activate a Virtual Environment (Linux)
@@ -74,8 +58,25 @@ useful psql commands:
 \d table_name   #show structure of table
 \q              #quit psql terminal
 ```
-### Run Communication System
-#### 1. Launch Docker
+## MQTT Communication System
+
+## Communication Prerequisites (Only for local development)
+Before running this project, you must have Docker installed. Choose **one** of these installation methods:
+
+### Option 1: Docker Desktop (Recommended)
+1. Download Docker Desktop:
+   - [Windows/Mac](https://www.docker.com/products/docker-desktop)
+   - [Linux](https://docs.docker.com/desktop/install/linux-install/)
+2. Install with default settings
+
+### Option 2: Command Line Installation (Linux)
+```bash
+sudo apt update
+sudo apt install docker.io docker-compose -y
+```
+
+## Comunication Setup 
+### 1. Launch Docker (Only for local development)
 ```bash
 Launch Docker Desktop and wait for it to be "ready"
 ```
@@ -87,22 +88,66 @@ sudo systemctl start docker
 sudo usermod -aG docker $USER
 newgrp docker 
 ```
-#### 2. Start EMQX Docker Container
+
+### 2. Start EMQX Docker Container (Only for local development)
 ```bash
 docker-compose up -d
 ```
-#### 3. Run main.py
-```bash
-poetry run python backend/mqtt_backend/main.py
-```
-#### 4. Access EMQX Dashboard as Admin
+
+### 3. Access EMQX Dashboard as Admin
 Go to http://localhost:18083 and login to EMQX Dashboard with designated credentials.
 
-### Add Authentication in EMQX Dashboard
+### (Additional) Add Authentication in EMQX Dashboard
 ```
 Navigate to the sidebar > Click 'Authentication' > 'Create'-button > Choose 'JWT'> Choose "Secret-based" and enter the same secret used by Django
 ```
 
+## Communication Architecture Overview
+
+- **MQTT Broker**: EMQX running on the main server (VM).
+- **Backend API**: Django REST API provides authentication and metadata (e.g., agent IDs).
+- **BaseNode**: Lightweight MQTT client script running on either the server or remote device.
+- **Redis**: (Optional) Used on the server side for message buffering on failure.
+
+---
+
+## Communication Scripts
+
+- `base_node.py`: Abstract class used for all agent communication
+- `remote_base_node.py`: Same as "base_node.py" just different ports
+- `send.py`: Same as "remote_send.py" just different ports
+- `remote_send.py`: Used by object to send a message
+- `receiver.py`: Used by any agent to continuously listen to incoming messages
+
+
+### Steps
+1. Make sure the corresponding base_node script exists in the system.
+2. Run the corresponsing recv script for the receiver agent before sending a message.
+3. Run the corresponding send script for the sender agent. 
+4. Go to the console where you run the recv script to check the received message. 
+
+---
+
+## Best Practices
+
+- **Message Topics**: All direct messages are published to `comm/<destination_agent_id>`.
+- **QoS**: Use `QoS=1` to ensure delivery at least once.
+- **Keep Nodes Alive**: Scripts should include an infinite loop (`while True`) to keep MQTT client running and responsive.
+- **Logging**: Use Python `logging` module instead of `print` for structured logs.
+- **Resilience**: On the server, Redis is used to buffer messages if a publish fails.
+
+---
+
+## Deployment Notes
+
+- **Server Nodes**: Spawned and managed via `CommNodeManager` inside Django. Subscribed at startup.
+- **Remote Nodes**: Use `remote_send.py` or `remote_recv.py` scripts. Each node must:
+  - Authenticate to backend
+  - Resolve agent IDs
+  - Connect to EMQX broker
+  - Send or receive messages
+
+---
 
 ## Reinitializing Database and Migrations
 

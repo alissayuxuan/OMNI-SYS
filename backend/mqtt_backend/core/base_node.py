@@ -54,6 +54,7 @@ class BaseNode:
         topic = f"comm/{destination}"
         try:
             result = self.client.publish(topic, json.dumps(envelope))
+            logger.info(f"[{self.object_id}] Published to {topic}")
             if result.rc != 0:
                 raise Exception(f"MQTT publish failed, rc={result.rc}")
         except Exception as e:
@@ -61,15 +62,27 @@ class BaseNode:
             self.redis.lpush(f"buffer:{self.object_id}:{destination}", json.dumps(envelope))
 
     def on_message(self, client, userdata, msg):
-        message = json.loads(msg.payload.decode())
-        self.handle_message(message)
+        payload_raw = msg.payload.decode()
+        print(f"\n📩 [RECEIVED] Topic: {msg.topic}")
+        print(f"📦 Payload (raw): {payload_raw}")
+        try:
+            message = json.loads(payload_raw)
+            print(f"📦 Payload (parsed):\n{json.dumps(message, indent=2)}")
+            self.handle_message(message)
+        except Exception as e:
+            print(f"❌ Failed to parse JSON: {e}")
+            logger.error(f"Error decoding message: {e}")
 
     def handle_message(self, message):
-        handler = ProtocolRouter.get_handler(message['protocol'])
+        protocol = message.get('protocol')
+        handler = ProtocolRouter.get_handler(protocol)
         if handler:
             decoded = handler.decode(message['payload'])
-            logger.info(f"[Object: {self.object_id}] Got {message['protocol']} message: {decoded}")
+            print(f"✅ Decoded {protocol} payload:\n{json.dumps(decoded, indent=2)}")
+            logger.info(f"[Object: {self.object_id}] Got {protocol} message: {decoded}")
         else:
+            print(f"⚠️ No handler for protocol '{protocol}', raw payload:")
+            print(json.dumps(message['payload'], indent=2))
             logger.info(f"[Object: {self.object_id}] Received message: {message}")
 
     def shutdown(self):
@@ -79,11 +92,20 @@ class BaseNode:
         """Connect to EMQX broker with no authentication."""
         self.client = Client(client_id=self.object_id)
         self.client.user_data_set(self)
+        self.client.on_connect = self._on_connect
         self.client.on_message = self.on_message
         result = self.client.connect(self.broker, self.port, 60)
         if result != 0:
             raise Exception("MQTT connection failed")
-        self.client.subscribe(f"comm/{self.object_id}")
+        # self.client.subscribe(f"comm/{self.object_id}")
+    
+    def _on_connect(self, client, userdata, flags, rc):
+        if rc == 0:
+            topic = f"comm/{self.object_id}"
+            client.subscribe(topic, qos=1)
+            logger.info(f"[Object: {self.object_id}] Subscribed to {topic}")
+        else:
+            logger.warning(f"[Object: {self.object_id}] Failed to connect with code {rc}")
 
     def retry_buffered_messages_all(self):
         """Retry all buffered messages for this node, for all destinations."""
