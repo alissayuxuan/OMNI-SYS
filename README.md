@@ -28,7 +28,7 @@ cd ../frontend
 npm install
 ```
 
-### Configure Environment Variables
+### 4. Configure Environment Variables
 In the backend/ directory, create a .env file with the following content:
 
 ```bash
@@ -204,7 +204,7 @@ Your database and migrations are now reset to a clean state.
 
 In order to be able to create any users or objects through API calls, a first admin user has to exist.
 
-Create an Admin User in Shell:
+#### Create an Admin User in Shell:
 
 ```bash
 poetry run python manage.py shell
@@ -216,7 +216,7 @@ admin_user = CustomUser.objects.create_user(username='admin_user', password='adm
 AdminProfile.objects.create(user=admin_user, first_name='Admin_First', last_name='Admin_Last', email='admin@email.com')
 ```
 
-Create an Agent User in Shell:
+#### Create an Agent User in Shell:
 
 ```bash
 python manage.py shell
