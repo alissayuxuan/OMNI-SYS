@@ -5,7 +5,7 @@ from core.base_node import BaseNode
 This script starts a receiver node that listens for messages sent to a specific Agent ID.
 """
 
-AGENT_ID = "24"  # Change to receiver's Agent ID
+AGENT_ID = "16"  # Change to receiver's Agent ID
 
 def main():
     node = BaseNode(object_id=AGENT_ID, broker="localhost", port=1883)
