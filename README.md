@@ -93,14 +93,6 @@ sudo apt install docker.io docker-compose -y
 ```bash
 Launch Docker Desktop and wait for it to be "ready"
 ```
-or
-
-```bash
-sudo systemctl enable docker
-sudo systemctl start docker
-sudo usermod -aG docker $USER
-newgrp docker 
-```
 
 ### 2. Start EMQX Docker Container (Only for local development)
 ```bash
@@ -135,9 +127,10 @@ Navigate to the sidebar > Click 'Authentication' > 'Create'-button > Choose 'JWT
 
 ### Steps
 1. Make sure the corresponding base_node script exists in the system.
-2. Run the corresponsing recv script for the receiver agent before sending a message.
-3. Run the corresponding send script for the sender agent. 
-4. Go to the console where you run the recv script to check the received message. 
+2. Run the corresponding receiver.py for the receiver agent before sending a message.
+3. Modify the send.py with sender and target agent details and payload. Then, run the corresponding send.py for the sender agent. 
+4. Go to the console where you run the recv script to check the received message.
+
 
 ---
 
