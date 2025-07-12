@@ -494,7 +494,7 @@ class RelationshipViewSet(viewsets.ModelViewSet):
         if agent_to_id is not None:
             queryset = queryset.filter(agent_to_id=agent_to_id)
             logger.debug(f"Filtering relationships by agent_to_id={agent_to_id}")
-        return queryset
+        return queryset.order_by(*self.ordering)
 
     def create(self, request, *args, **kwargs):
         try:

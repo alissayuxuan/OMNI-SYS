@@ -3,11 +3,11 @@ disable_existing_loggers: False
 
 formatters:
   omni_sys:
-    #(): audit_logging.utils.TimezoneFormatter
+    (): audit_logging.utils.TimezoneFormatter
     format: "OMNI-SYS - Backend -- %(levelname)s - %(asctime)s - %(module)s - %(funcName)s() - %(message)s"
 
   db_change:
-    #(): audit_logging.utils.TimezoneFormatter
+    (): audit_logging.utils.TimezoneFormatter
     format: "OMNI-SYS - DB_CHANGE -- %(levelname)s - %(asctime)s - %(message)s"
 
 filters:
@@ -21,6 +21,7 @@ handlers:
     formatter: omni_sys
     stream: ext://sys.stdout
     filters: [below_error] # I need to ony log levels between DEBUG and WARNING, but not ERROR or CRITICAL since they are logged to stderr
+  
   stderr_handler:
     class: logging.StreamHandler
     level: ERROR
