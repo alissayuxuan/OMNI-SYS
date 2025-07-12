@@ -4,7 +4,6 @@ disable_existing_loggers: False
 formatters:
   omni_sys:
     format: "OMNI-SYS - Backend -- %(levelname)s - %(asctime)s - %(module)s - %(funcName)s() - %(message)s"
-  
 
 filters:
   below_error:
@@ -23,10 +22,20 @@ handlers:
     formatter: omni_sys
     stream: ext://sys.stderr
 
+  user_action_file_handler:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: INFO
+    formatter: omni_sys
+    filename: logs/user_action_logs/user_actions.log
+    when: midnight        # Rotate at midnight
+    interval: 1           # Every 1 day
+    backupCount: 30       # Keep 30 days of logs
+    encoding: utf8
+
 loggers:
   omnisyslogger: # specify one logger for all logs we want to log
     level: DEBUG
-    handlers: [stdout_handler, stderr_handler]
+    handlers: [stdout_handler, stderr_handler, user_action_file_handler]
     propagate: no
 
 root: # all other logs (e.g. from libraries) should be logged with a different handler and therefore different format

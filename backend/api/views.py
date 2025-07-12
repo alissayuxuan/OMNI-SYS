@@ -32,6 +32,7 @@ class ArchiveMixin:
                 return Response({'status': f'{obj.__class__.__name__.lower()} already archived'})
             obj.is_archived = True
             obj.save()
+            logger.info(f"User {request.user.username} archived {obj.__class__.__name__} ID: {obj.id}")
             return Response({'status': f'{obj.__class__.__name__.lower()} archived'})
 
         @action(detail=True, methods=['post'])
@@ -41,6 +42,7 @@ class ArchiveMixin:
                 return Response({'status': f'{obj.__class__.__name__.lower()} already unarchived'})
             obj.is_archived = False
             obj.save()
+            logger.info(f"User {request.user.username} unarchived {obj.__class__.__name__} ID: {obj.id}")
             return Response({'status': f'{obj.__class__.__name__.lower()} unarchived'})
 
 def handle_api_error(exception, default_message="An error occurred"):

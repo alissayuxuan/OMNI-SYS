@@ -25,8 +25,11 @@ def main():
 
 if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.abspath(__file__))  # Get the script's directory
-    config_path = os.path.join(script_dir, "logging_config.yaml")
 
+    log_dir = os.path.join(script_dir, "logs", "user_action_logs")
+    os.makedirs(log_dir, exist_ok=True)
+
+    config_path = os.path.join(script_dir, "logging_config.yaml")
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
         logging.config.dictConfig(config)
