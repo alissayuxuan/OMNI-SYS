@@ -3,11 +3,16 @@ disable_existing_loggers: False
 
 formatters:
   omni_sys:
+    (): logging_utils.TimezoneFormatter
     format: "OMNI-SYS - Backend -- %(levelname)s - %(asctime)s - %(module)s - %(funcName)s() - %(message)s"
+
+  db_change:
+    (): logging_utils.TimezoneFormatter
+    format: "OMNI-SYS - DB_CHANGE -- %(levelname)s - %(asctime)s - %(message)s"
 
 filters:
   below_error:
-    (): logging_filter.BelowErrorFilter
+    (): logging_utils.BelowErrorFilter
 
 handlers:
   stdout_handler:
@@ -32,10 +37,25 @@ handlers:
     backupCount: 30       # Keep 30 days of logs
     encoding: utf8
 
+  db_change_file_handler:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: INFO
+    formatter: db_change
+    filename: logs/db_change_logs/db_changes.log
+    when: midnight
+    interval: 1
+    backupCount: 30
+    encoding: utf8
+
 loggers:
   omnisyslogger: # specify one logger for all logs we want to log
     level: DEBUG
     handlers: [stdout_handler, stderr_handler, user_action_file_handler]
+    propagate: no
+
+  db_logger:
+    level: INFO
+    handlers: [db_change_file_handler]
     propagate: no
 
 root: # all other logs (e.g. from libraries) should be logged with a different handler and therefore different format

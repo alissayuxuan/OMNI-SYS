@@ -2,7 +2,7 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-
+import time
 import yaml
 import logging.config
 
@@ -24,10 +24,14 @@ def main():
 
 
 if __name__ == '__main__':
+    logging.Formatter.converter = time.gmtime # Make sure timestamps are in UTC
     script_dir = os.path.dirname(os.path.abspath(__file__))  # Get the script's directory
 
-    log_dir = os.path.join(script_dir, "logs", "user_action_logs")
-    os.makedirs(log_dir, exist_ok=True)
+    user_action_logs_dir = os.path.join(script_dir, "logs", "user_action_logs")
+    db_change_logs_dir = os.path.join(script_dir, "logs", "db_change_logs")
+
+    os.makedirs(user_action_logs_dir, exist_ok=True)
+    os.makedirs(db_change_logs_dir, exist_ok=True)
 
     config_path = os.path.join(script_dir, "logging_config.yaml")
     with open(config_path, 'r') as f:

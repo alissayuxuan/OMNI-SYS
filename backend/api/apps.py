@@ -9,6 +9,7 @@ class ApiConfig(AppConfig):
         This method is called when the app is ready.
         It is used to perform any startup tasks, such as rebuilding communication nodes."""
         import os
+        import api.signals
         if os.environ.get("RUN_MAIN") == "true":
             from api.models import Agent
             from mqtt_backend.comm_node_manager import CommNodeManager
