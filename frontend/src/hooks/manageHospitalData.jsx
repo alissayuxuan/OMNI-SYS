@@ -41,7 +41,7 @@ export const manageHospitalData = () => {
   // get Contexts
   const getContexts = async (filters = {}) => {
     try {
-        const response = await api.get("api/contexts/", {
+        const response = await api.get("/api/contexts/", {
         params: filters,
         });
         return response.data; 
@@ -54,7 +54,7 @@ export const manageHospitalData = () => {
   // get Spaces
   const getSpaces = async (filters = {}) => {
     try {
-        const response = await api.get("api/spaces/", {
+        const response = await api.get("/api/spaces/", {
         params: filters,
         });
         return response.data; 
@@ -67,7 +67,7 @@ export const manageHospitalData = () => {
   // Get all users (optional: filter by role)
   const getUsers = async (role = null) => {
     try {
-      const response = await api.get(`api/auth/users/${role ? `?role=${role}` : ''}`);
+      const response = await api.get(`/api/auth/users/${role ? `?role=${role}` : ''}`);
       return response.data;
     } catch (error) {
       const message = error.response?.data?.error || "Failed to fetch users.";
@@ -78,7 +78,7 @@ export const manageHospitalData = () => {
   // Get a specific user by ID
   const getUser = async (userId) => {
     try {
-      const response = await api.get(`api/auth/users/${userId}/`);
+      const response = await api.get(`/api/auth/users/${userId}/`);
       return response.data;
     } catch (error) {
       const message = error.response?.data?.error || "Failed to fetch user.";
@@ -89,7 +89,7 @@ export const manageHospitalData = () => {
   // Get AgentProfiles (agent from authentification table)
   const getAgentProfiles = async () => {
     try {
-      const res = await api.get("api/auth/agent-profiles/");
+      const res = await api.get("/api/auth/agent-profiles/");
       return res.data;
     } catch (error) {
       throw new Error(error.response?.data?.error || "Failed to fetch agent profiles");
@@ -99,7 +99,7 @@ export const manageHospitalData = () => {
   // Get specific AgentProfiles (agent from authentification table)
   const getAgentProfile = async (id) => {
     try {
-      const res = await api.get(`api/auth/agent-profiles/${id}/`);
+      const res = await api.get(`/api/auth/agent-profiles/${id}/`);
       return res.data;
     } catch (error) {
       throw new Error(error.response?.data?.error || "Failed to fetch agent profile");
@@ -109,7 +109,7 @@ export const manageHospitalData = () => {
   // Get AdminProfiles
   const getAdminProfiles = async () => {
     try {
-      const res = await api.get("api/auth/admin-profiles/");
+      const res = await api.get("/api/auth/admin-profiles/");
       return res.data;
     } catch (error) {
       throw new Error(error.response?.data?.error || "Failed to fetch admin profiles");
@@ -119,7 +119,7 @@ export const manageHospitalData = () => {
   // Get specific AdminProfile
   const getAdminProfile = async (id) => {
     try {
-      const res = await api.get(`api/auth/admin-profiles/${id}/`);
+      const res = await api.get(`/api/auth/admin-profiles/${id}/`);
       return res.data;
     } catch (error) {
       throw new Error(error.response?.data?.error || "Failed to fetch admin profile");
@@ -129,7 +129,7 @@ export const manageHospitalData = () => {
   // Get Relationships
   const getRelationships = async (params = {}) => {
     try {
-      const response = await api.get('api/relationships/', { params });
+      const response = await api.get('/api/relationships/', { params });
       return response.data;
     } catch (error) {
       const message = error.response?.data?.error || "Failed to fetch relationships.";
@@ -164,7 +164,7 @@ export const manageHospitalData = () => {
   // Create Context
   const createContext = async (payload) => {
     try {
-        const response = await api.post("api/contexts/", payload);
+        const response = await api.post("/api/contexts/", payload);
         return response.data; 
       } catch (error) {
         const message = error.response?.data?.error || "Error occured when creating the Context.";
@@ -175,7 +175,7 @@ export const manageHospitalData = () => {
   // Create Space
   const createSpace = async (payload) => {
     try {
-      const response = await api.post("api/spaces/", payload);
+      const response = await api.post("/api/spaces/", payload);
       return response.data; 
     } catch (error) {
       const message = error.response?.data?.error || "Error occured when creating the Space.";
@@ -186,7 +186,7 @@ export const manageHospitalData = () => {
   // Create Relationship
   const createRelationship = async (payload) => {
     try {
-      const response = await api.post('api/relationships/', payload);
+      const response = await api.post('/api/relationships/', payload);
       return response.data;
     } catch (error) {
       const message = error.response?.data?.error || "Error occured when creating the Relationship.";
@@ -230,7 +230,7 @@ export const manageHospitalData = () => {
   // Delete Relationship
   const deleteRelationship = async (relationshipId) => {
     try {
-      const response = await api.delete(`api/relationships/${relationshipId}/`);
+      const response = await api.delete(`/api/relationships/${relationshipId}/`);
       return response.data;
     } catch (error) {
       const message = error.response?.data?.error || "Error occured when deleting the relationship.";      
@@ -241,7 +241,7 @@ export const manageHospitalData = () => {
   // Delete a user by ID
   const deleteUser = async (userId) => {
     try {
-      await api.delete(`api/auth/users/${userId}/`);
+      await api.delete(`/api/auth/users/${userId}/`);
       return true;
     } catch (error) {
       const message = error.response?.data?.error || "Failed to delete user.";
@@ -252,7 +252,7 @@ export const manageHospitalData = () => {
   // Delete AgentProfile
   const deleteAgentProfile = async (id) => {
     try {
-      await api.delete(`api/auth/agent-profiles/${id}/`);
+      await api.delete(`/api/auth/agent-profiles/${id}/`);
       return true;
     } catch (error) {
       throw new Error(error.response?.data?.error || "Failed to delete agent profile");
@@ -262,7 +262,7 @@ export const manageHospitalData = () => {
   // Delete AdminProfile
   const deleteAdminProfile = async (id) => {
     try {
-      await api.delete(`api/auth/admin-profiles/${id}/`);
+      await api.delete(`/api/auth/admin-profiles/${id}/`);
       return true;
     } catch (error) {
       throw new Error(error.response?.data?.error || "Failed to delete admin profile");
@@ -340,7 +340,7 @@ export const manageHospitalData = () => {
   // Update a user by ID
  const updateUser = async (userId, payload) => {
     try {
-      const response = await api.put(`api/auth/users/${userId}/`, payload);
+      const response = await api.put(`/api/auth/users/${userId}/`, payload);
       return response.data;
     } catch (error) {
       const message = error.response?.data?.error || "Failed to update user.";
@@ -351,7 +351,7 @@ export const manageHospitalData = () => {
   // Update AgentProfile by ID
   const updateAgentProfile = async (id, data) => {
     try {
-      const res = await api.put(`api/auth/agent-profiles/${id}/`, data);
+      const res = await api.put(`/api/auth/agent-profiles/${id}/`, data);
       return res.data;
     } catch (error) {
       throw new Error(error.response?.data?.error || "Failed to update agent profile");
@@ -361,7 +361,7 @@ export const manageHospitalData = () => {
   // Update AdminProfile by ID
   const updateAdminProfile = async (id, data) => {
     try {
-      const res = await api.put(`api/auth/admin-profiles/${id}/`, data);
+      const res = await api.put(`/api/auth/admin-profiles/${id}/`, data);
       return res.data;
     } catch (error) {
       throw new Error(error.response?.data?.error || "Failed to update admin profile");
@@ -371,7 +371,7 @@ export const manageHospitalData = () => {
 
   const getProfile = async () => {
     try {
-      const res = await api.get(`api/auth/profile/`);
+      const res = await api.get(`/api/auth/profile/`);
       return res.data;
     } catch (error) {
       throw new Error(error.response?.data?.error || "Failed to fetch agent profile");
@@ -381,7 +381,7 @@ export const manageHospitalData = () => {
   
   const updateProfile = async (updatedData) => {
     try {
-      const res = await api.put(`api/auth/profile/`, updatedData);
+      const res = await api.put(`/api/auth/profile/`, updatedData);
       return res.data;
     } catch (error) {
       const message = error.response?.data?.error || "Error occured when updating the profile.";
@@ -391,7 +391,7 @@ export const manageHospitalData = () => {
 
   const changePassword = async ({ currentPassword, newPassword }) => {
     try {
-      const res = await api.post(`api/auth/change-password/`, {
+      const res = await api.post(`/api/auth/change-password/`, {
         current_password: currentPassword,
         new_password: newPassword,
       });
