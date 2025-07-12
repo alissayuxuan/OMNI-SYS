@@ -1,3 +1,10 @@
+"""
+This module provides API viewsets for managing Agents, Spaces, and Contexts
+in a scheduling or coordination system. It includes full CRUD functionality,
+filtering, ordering, search, pagination, logging, and archival/unarchival support
+via a shared ArchiveMixin. 
+"""
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, permission_classes, api_view
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -20,30 +27,28 @@ import redis
 
 logger = logging.getLogger('omnisyslogger')
 
-# Mixin to add archive/unarchive actions to ModelViewSets
+""" ArchiveMixin provides reusable archive/unarchive actions for models
+    with a BooleanField named 'is_archived'. Used in ModelViewSets. """
 class ArchiveMixin:
-        """ Mixin to add archive/unarchive actions to a ModelViewSet.
-        Assumes the model has an 'is_archived' BooleanField."""
+    @action(detail=True, methods=['post'])
+    def archive(self, request, pk=None):
+        obj = self.get_object()
+        if obj.is_archived:
+            return Response({'status': f'{obj.__class__.__name__.lower()} already archived'})
+        obj.is_archived = True
+        obj.save()
+        logger.info(f"User {request.user.username} archived {obj.__class__.__name__} ID: {obj.id}")
+        return Response({'status': f'{obj.__class__.__name__.lower()} archived'})
 
-        @action(detail=True, methods=['post'])
-        def archive(self, request, pk=None):
-            obj = self.get_object()
-            if obj.is_archived:
-                return Response({'status': f'{obj.__class__.__name__.lower()} already archived'})
-            obj.is_archived = True
-            obj.save()
-            logger.info(f"User {request.user.username} archived {obj.__class__.__name__} ID: {obj.id}")
-            return Response({'status': f'{obj.__class__.__name__.lower()} archived'})
-
-        @action(detail=True, methods=['post'])
-        def unarchive(self, request, pk=None):
-            obj = self.get_object()
-            if not obj.is_archived:
-                return Response({'status': f'{obj.__class__.__name__.lower()} already unarchived'})
-            obj.is_archived = False
-            obj.save()
-            logger.info(f"User {request.user.username} unarchived {obj.__class__.__name__} ID: {obj.id}")
-            return Response({'status': f'{obj.__class__.__name__.lower()} unarchived'})
+    @action(detail=True, methods=['post'])
+    def unarchive(self, request, pk=None):
+        obj = self.get_object()
+        if not obj.is_archived:
+            return Response({'status': f'{obj.__class__.__name__.lower()} already unarchived'})
+        obj.is_archived = False
+        obj.save()
+        logger.info(f"User {request.user.username} unarchived {obj.__class__.__name__} ID: {obj.id}")
+        return Response({'status': f'{obj.__class__.__name__.lower()} unarchived'})
 
 def handle_api_error(exception, default_message="An error occurred"):
     """Simple helper to format error responses"""
@@ -67,7 +72,7 @@ class AgentViewSet(ArchiveMixin, viewsets.ModelViewSet):
     """
     ViewSet for Agent CRUD operations
     """
-    queryset = Agent.objects.all()
+    queryset = Agent.objects.all().order_by('-created_at')
     serializer_class = AgentSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
@@ -85,6 +90,7 @@ class AgentViewSet(ArchiveMixin, viewsets.ModelViewSet):
         return queryset.order_by('-created_at')
 
     def get_queryset(self):
+        """Return agents, optionally including archived ones, and optionally filtered."""
         queryset = Agent.objects.all()
         archived = self.request.query_params.get('archived', 'true').lower()
         if archived != 'true':
@@ -169,7 +175,7 @@ class SpaceViewSet(ArchiveMixin, viewsets.ModelViewSet):
     """
     ViewSet for Space CRUD operations
     """
-    queryset = Space.objects.all()
+    queryset = Space.objects.all().order_by('-created_at')
     serializer_class = SpaceSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter]

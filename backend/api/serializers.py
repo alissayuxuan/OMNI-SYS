@@ -1,3 +1,8 @@
+"""
+This module provides serializers to handle validation and transformation between Django models and JSON representations
+used in RESTful APIs for the OMNI-SYS API.
+"""
+
 from django.db import models
 from rest_framework import serializers
 from .models import Agent, Space, Context, Relationship

@@ -1,5 +1,7 @@
 import logging
-import time
+import datetime
+import pytz
+from django.conf import settings
 
 class BelowErrorFilter(logging.Filter):
     """Filters out messages with level ERROR and above."""
@@ -8,17 +10,12 @@ class BelowErrorFilter(logging.Filter):
 
 class TimezoneFormatter(logging.Formatter):
     """
-    Formatter appends the active timezone abbreviation to the log timestamp.
+    Logging formatter that uses settings.TIME_ZONE and includes the correct
+    timezone abbreviation (e.g., UTC) at the log record timestamp.
     """
-    def converter(self, timestamp):
-        dt = datetime.datetime.fromtimestamp(timestamp, pytz.timezone(settings.TIME_ZONE))
-        return dt
-
     def formatTime(self, record, datefmt=None):
-        dt = self.converter(record.created)
+        tz = pytz.timezone(settings.TIME_ZONE)
+        dt = datetime.datetime.fromtimestamp(record.created, tz)
         tz_abbr = dt.tzname()
-        if datefmt:
-            s = dt.strftime(datefmt)
-        else:
-            s = dt.strftime("%Y-%m-%d %H:%M:%S")
+        s = dt.strftime(datefmt or "%Y-%m-%d %H:%M:%S")
         return f"{s} {tz_abbr}"

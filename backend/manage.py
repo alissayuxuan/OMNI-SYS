@@ -33,8 +33,11 @@ if __name__ == '__main__':
     os.makedirs(user_action_logs_dir, exist_ok=True)
     os.makedirs(db_change_logs_dir, exist_ok=True)
 
-    config_path = os.path.join(script_dir, "logging_config.yaml")
+    config_path = os.path.join(script_dir, "audit_logging", "config.yaml")
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
         logging.config.dictConfig(config)
+
+        logger = logging.getLogger("omni_sys")
+        logger.info("✅ Logging initialized and writing to file.")
     main()

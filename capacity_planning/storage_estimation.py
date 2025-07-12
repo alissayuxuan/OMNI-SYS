@@ -1,7 +1,9 @@
-# Estimate size requirements for the data storage system (only looking at core data)
+"""
+Estimate size requirements for the data storage system (only looking at core data)
+"""
 
-# Helper to format bytes into readable strings
 def format_bytes(b):
+    """ Helper to format byte values into human-readable strings """
     if b < 1024:
         return f"{b} B"
     elif b < 1024**2:
@@ -11,35 +13,36 @@ def format_bytes(b):
     else:
         return f"{b / 1024 / 1024 / 1024:.2f} GB"
 
-# Parameters to adjust based on expected scaling
+""" Parameters to adjust based on expected scaling """
 def estimate_storage(
     num_agents=10000,
     num_spaces=500,
     num_contexts_per_year=50,
     num_years=5,
     avg_agents_per_context=3,
-    num_relationships=100000000, # 100M
+    num_relationships=100000000, # 100 million relationships
     overhead_factor=1.5  # 50% for indexes, metadata, etc.
 ):
-    # Size estimates in Bytes (based on standard sizes)
+    
+    # Estimated size (in bytes) per individual record type
     size_per_agent = 120
     size_per_space = 120
     size_per_context_base = 124
     size_per_agent_context_link = 8
     size_per_relationship = 8
 
-    # Total entries over time
+    # Calculate total entities based on time and scaling
     total_contexts = num_contexts_per_year * num_years
     total_agent_context_links = total_contexts * avg_agents_per_context
 
-    # Base sizes (in Bytes)
+    # Compute raw storage per component
     agent_storage = num_agents * size_per_agent
     space_storage = num_spaces * size_per_space
     context_storage = total_contexts * size_per_context_base
     agent_context_storage = total_agent_context_links * size_per_agent_context_link
     relationship_storage = num_relationships * size_per_relationship
 
-    # Totals
+    # Compute raw total (without overhead)
     total_raw = ( # Total raw data size without overhead
         agent_storage
         + space_storage
@@ -48,6 +51,7 @@ def estimate_storage(
         + relationship_storage
     )
 
+    # Apply overhead multiplier
     total_with_overhead = total_raw * overhead_factor
 
     # Return formatted results
@@ -61,10 +65,10 @@ def estimate_storage(
         "total with overhead:": format_bytes(total_with_overhead),
     }
 
-# Run with example parameters
+# Example execution block
 if __name__ == "__main__":
     
-    # Calculate storage estimates
+    # Run estimation
     result = estimate_storage() 
 
     # Print results in a table
