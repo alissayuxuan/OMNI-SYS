@@ -87,7 +87,7 @@ class AgentViewSet(ArchiveMixin, viewsets.ModelViewSet):
         access_level = self.request.query_params.get('access_level', None)
         if access_level is not None:
             queryset = queryset.filter(access_level=access_level)
-        return queryset.order_by('-created_at')
+        return queryset
 
     def get_queryset(self):
         """Return agents, optionally including archived ones, and optionally filtered."""
@@ -189,7 +189,7 @@ class SpaceViewSet(ArchiveMixin, viewsets.ModelViewSet):
         min_capacity = self.request.query_params.get('min_capacity', None)
         if min_capacity is not None:
             queryset = queryset.filter(capacity__gte=min_capacity)
-        return queryset.order_by('-created_at')
+        return queryset
 
     def get_queryset(self):
         """Return spaces, optionally including archived ones, and optionally filtered."""
@@ -478,6 +478,8 @@ class RelationshipViewSet(viewsets.ModelViewSet):
     serializer_class = RelationshipSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
+    ordering_fields = ['created_at', 'agent_from', 'agent_to']
+    ordering = ['-created_at'] 
 
     def get_queryset(self):
         """Filter relationships by agent_from or agent_to"""
