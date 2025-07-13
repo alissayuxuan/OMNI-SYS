@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 import logging
+import sys
 
 """
 MQTT Logger for logging all MQTT communication
@@ -7,6 +8,14 @@ This script connects to an MQTT broker and logs all messages received on the "co
 """
 
 logger = logging.getLogger('omnisyslogger')
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)  # Output goes to journalctl
+    ]
+)
 
 def on_connect(client, userdata, flags, rc):
     logger.info("Logger connected to EMQX!")
